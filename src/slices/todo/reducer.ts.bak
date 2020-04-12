@@ -1,0 +1,11 @@
+
+import { createReducer } from '@reduxjs/toolkit'
+import { getType } from 'typesafe-actions';
+
+import { TodoSlice } from '.'
+
+export const todoReducer = createReducer(TodoSlice.initialState, {
+  [getType(TodoSlice.GET.success)]: (state, action: ReturnType<typeof TodoSlice.GET.success>) => {
+    state.items = action.payload;
+  }
+})

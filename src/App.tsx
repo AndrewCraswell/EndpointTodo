@@ -1,24 +1,19 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useDispatch } from 'react-redux';
+
+import { TodoSlice } from './slices/todo/';
 
 function App() {
+  const dispatch = useDispatch();
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <button onClick={() => dispatch(TodoSlice.Methods.GET.request('5264'))}>Get Todos</button>
+      <button onClick={() => dispatch(TodoSlice.Methods.POST.request({
+        completed: false,
+        title: 'Clean my room',
+        order: 1
+      }))}>Add Todo</button>
     </div>
   );
 }
