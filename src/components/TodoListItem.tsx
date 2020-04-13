@@ -7,6 +7,7 @@ import {
   ListItemSecondaryAction
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
+import DragHandleRounded from "@material-ui/icons/DragHandleRounded";
 
 import { ITodoItem } from '../models';
 
@@ -30,6 +31,10 @@ const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
 
   return (
     <ListItem divider={divider}>
+      <IconButton aria-label="Reorder Todo">
+        <DragHandleRounded />
+      </IconButton>
+
       <Checkbox
         onClick={onCheck}
         checked={item.completed}
@@ -43,7 +48,7 @@ const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
       )}
 
       <ListItemSecondaryAction>
-        <IconButton aria-label="Delete Todo" onClick={onRemove}>
+        <IconButton aria-label="Delete Todo" onClick={onRemove} disabled={!item.url}>
           <DeleteOutlined />
         </IconButton>
       </ListItemSecondaryAction>
