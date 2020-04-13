@@ -1,20 +1,46 @@
-import React from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useCallback } from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 
-import { TodoSlice } from './slices/todo/';
+import Layout from "./components/Layout";
+import AddTodoForm from "./components/AddTodoForm";
+import TodoList from "./components/TodoList";
+import { TodoMethods } from './store/slices/todo';
+import { useEndpointMethod } from './endpoint';
+import { ApplicationState } from './store';
+import { ITodoItem } from './models';
 
 function App() {
-  const dispatch = useDispatch();
+  const getAllTodos = useEndpointMethod(TodoMethods.GetAll);
+  const addTodo = useEndpointMethod(TodoMethods.Add);
+  const deleteTodo = useEndpointMethod(TodoMethods.Delete);
+  const updateTodo = useEndpointMethod(TodoMethods.Update);
+
+  const todos = useSelector((state: ApplicationState) => Object.values(state.Todo.items), shallowEqual);
+
+  const onDeleteItem = useCallback((item: ITodoItem) => {
+    deleteTodo(item);
+  }, [deleteTodo]);
+
+  const onCheckedItem = useCallback((item: ITodoItem) => {
+    updateTodo({
+      ...item,
+      completed: !item.completed
+    });
+  }, [updateTodo]);
+
+  useEffect(() => {
+    getAllTodos();
+  }, [getAllTodos]);
 
   return (
-    <div className="App">
-      <button onClick={() => dispatch(TodoSlice.Methods.GET.request('5264'))}>Get Todos</button>
-      <button onClick={() => dispatch(TodoSlice.Methods.POST.request({
-        completed: false,
-        title: 'Clean my room',
-        order: 1
-      }))}>Add Todo</button>
-    </div>
+    <Layout>
+      <AddTodoForm addTodoItem={addTodo} />
+      <TodoList
+        items={todos}
+        onItemCheck={onCheckedItem}
+        onItemRemove={onDeleteItem}
+      />
+    </Layout>
   );
 }
 

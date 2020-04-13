@@ -1,11 +1,11 @@
 // eslint-disable-next-line import/no-unresolved
-import { call, put } from 'redux-saga/effects';
+import { call, put, takeLeading, takeEvery, takeLatest } from 'redux-saga/effects';
 import { AnyAction } from 'redux';
 
 import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig } from '.';
 import { sagaRegistry } from './SagaRegistry';
 
-export class SagaOrchestrator implements AsyncOrchestrator {
+class SagaOrchestrator implements AsyncOrchestrator {
   /** The effect creator to apply when watching for the endpoint actions to occur */
   protected effect: EffectCreator;
 
@@ -31,14 +31,14 @@ export class SagaOrchestrator implements AsyncOrchestrator {
         //   ...this._defaultPassThroughProps,
         //   ...action.meta.props,
         // };
-    
+
         // Construct a result object with meta data representing all aspects of the request
         //  to be handed to the success or error callbacks
         // const actionResult: IEndpointActionMeta<RequestBody, PassThroughProps> = {
         //   request,
         //   props,
         // };
-    
+
         try {
           // Attempt to call the Api endpoint
           //if (!props.reducerOnly) {
@@ -46,18 +46,18 @@ export class SagaOrchestrator implements AsyncOrchestrator {
             // TODO: action.meta should be a config object that includes props
             let response: PromiseType<ReturnType<typeof apiFunction>> | any = yield call(apiFunction, action.payload, action.meta);
           //}
-    
+
           // Add the response data to the result object
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           //const { config = {}, data = {}, ...trimmedResponse } = response || {};
           //actionResult.response = trimmedResponse;
-    
+
           // Reset the failed count before executing the success handler
           // actionResult.props = {
           //   ...actionResult.props,
           //   ...this._defaultPassThroughProps,
           // };
-    
+
           const data = response ? response.data : undefined;
           const successAction = actions.success(data, {} as MethodProps);
           yield put(successAction);
@@ -68,7 +68,7 @@ export class SagaOrchestrator implements AsyncOrchestrator {
           //   ...actionResult.props,
           //   failedCount: ((actionResult.props && actionResult.props.failedCount) || 0) + 1,
           // } as PassThroughProps & IEndpointPassThroughProps;
-    
+
           if (err.request) {
             // The request was made and the server responded with a
             // status code that falls out of the range of 2xx
@@ -87,6 +87,12 @@ export class SagaOrchestrator implements AsyncOrchestrator {
       // Register the saga
       sagaRegistry.registerAnthology(name, [rootSaga]);
   }
+}
+
+export const Orchestrators = {
+  takeLeading: new SagaOrchestrator(takeLeading),
+  takeEvery: new SagaOrchestrator(takeEvery),
+  takeLatest: new SagaOrchestrator(takeLatest)
 }
 
 // /**
