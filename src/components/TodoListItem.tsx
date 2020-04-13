@@ -1,10 +1,11 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useState } from "react";
 import {
   ListItem,
   Checkbox,
   IconButton,
   ListItemText,
-  ListItemSecondaryAction
+  ListItemSecondaryAction,
+  Slide
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
 import DragHandleRounded from "@material-ui/icons/DragHandleRounded";
@@ -20,39 +21,43 @@ interface ITodoListItem {
 
 const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
   const { item, divider, onButtonClick, onCheckBoxToggle } = props;
+  const [isTransitionIn, setIsTransitionIn] = useState(true);
 
   const onCheck = useCallback(() => {
     onCheckBoxToggle(item);
   }, [onCheckBoxToggle, item]);
 
   const onRemove = useCallback(() => {
+    setIsTransitionIn(false);
     onButtonClick(item);
   }, [onButtonClick, item]);
 
   return (
-    <ListItem divider={divider}>
-      <IconButton aria-label="Reorder Todo">
-        <DragHandleRounded />
-      </IconButton>
-
-      <Checkbox
-        onClick={onCheck}
-        checked={item.completed}
-        disableRipple
-      />
-
-      { item.completed ? (
-        <del><ListItemText primary={item.title} /></del>
-      ) : (
-        <ListItemText primary={item.title} />
-      )}
-
-      <ListItemSecondaryAction>
-        <IconButton aria-label="Delete Todo" onClick={onRemove} disabled={!item.url}>
-          <DeleteOutlined />
+    <Slide direction="up" in={isTransitionIn} unmountOnExit>
+      <ListItem divider={divider}>
+        <IconButton aria-label="Reorder Todo">
+          <DragHandleRounded />
         </IconButton>
-      </ListItemSecondaryAction>
-    </ListItem>
+
+        <Checkbox
+          onClick={onCheck}
+          checked={item.completed}
+          disableRipple
+        />
+
+        { item.completed ? (
+          <del><ListItemText primary={item.title} /></del>
+        ) : (
+          <ListItemText primary={item.title} />
+        )}
+
+        <ListItemSecondaryAction>
+          <IconButton aria-label="Delete Todo" onClick={onRemove} disabled={!item.url}>
+            <DeleteOutlined />
+          </IconButton>
+        </ListItemSecondaryAction>
+      </ListItem>
+    </Slide>
   );
 });
 

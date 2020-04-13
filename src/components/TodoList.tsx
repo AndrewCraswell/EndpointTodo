@@ -18,7 +18,7 @@ const TodoList: React.FunctionComponent<ITodoListProps> = memo(props => (
           {props.items.map((todo, idx) => (
             <TodoListItem
               item={todo}
-              key={`TodoItem.${idx}`}
+              key={`TodoItem.${todo.id}`}
               divider={idx !== props.items.length - 1}
               onButtonClick={props.onItemRemove}
               onCheckBoxToggle={props.onItemCheck}

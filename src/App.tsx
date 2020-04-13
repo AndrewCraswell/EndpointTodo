@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 
 import Layout from "./components/Layout";
 import AddTodoForm from "./components/AddTodoForm";
@@ -15,7 +15,7 @@ function App() {
   const deleteTodo = useEndpointMethod(TodoMethods.Delete);
   const updateTodo = useEndpointMethod(TodoMethods.Update);
 
-  const todos = useSelector((state: ApplicationState) => Object.values(state.Todo.items));
+  const todos = useSelector((state: ApplicationState) => Object.values(state.Todo.items), shallowEqual);
 
   const onDeleteItem = useCallback((item: ITodoItem) => {
     deleteTodo(item);
