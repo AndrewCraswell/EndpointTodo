@@ -3,13 +3,10 @@ import { useDispatch } from 'react-redux';
 
 import { EndpointMethod } from './';
 
-// TODO: Implement hook to automatically execute the request() action
-// TODO: Fix typing so the parameters of request() are typesafe
-
 export const useEndpointMethod = <RequestPayload, ResponsePayload, ErrorPayload, MethodProps>(method: EndpointMethod<RequestPayload, ResponsePayload, ErrorPayload, MethodProps>) => {
   const dispatch = useDispatch();
 
-  function wrap<Action extends Function>(action: Action): Action {
+  function wrap<ActionFunction extends Function>(action: ActionFunction): ActionFunction {
     var wrappedAction = (...args: any[]) => {
         dispatch(action.apply(undefined, args));
         return null;

@@ -8,7 +8,7 @@ import { sagaRegistry } from '../endpoint/SagaRegistry';
 
 export type ApplicationState = {
   // This breaks code-splitting
-  todos: typeof TodoSlice.initialState
+  Todo: typeof TodoSlice.initialState
 }
 
 const sagaMiddleware = createSagaMiddleware();

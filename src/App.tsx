@@ -1,29 +1,47 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
+import Layout from "./components/Layout";
+import AddTodoForm from "./components/AddTodoForm";
+import TodoList from "./components/TodoList";
 import { TodoMethods } from './slices/todo/';
 import { useEndpointMethod } from './endpoint';
-
-// TODO: Build example Todo UI
+import { ApplicationState } from './store';
+import { ITodoItem } from './models';
 
 function App() {
   const getAllTodos = useEndpointMethod(TodoMethods.GetAll);
-  const getTodosById = useEndpointMethod(TodoMethods.GetById);
   const addTodo = useEndpointMethod(TodoMethods.Add);
+  const deleteTodo = useEndpointMethod(TodoMethods.Delete);
+  const updateTodo = useEndpointMethod(TodoMethods.Update);
+
+
+  const todos = useSelector((state: ApplicationState) => Object.values(state.Todo.items));
+
+  const onDeleteItem = useCallback((item: ITodoItem) => {
+    deleteTodo(item);
+  }, [deleteTodo]);
+
+  const onCheckedItem = useCallback((item: ITodoItem) => {
+    updateTodo({
+      ...item,
+      completed: !item.completed
+    });
+  }, [updateTodo]);
 
   useEffect(() => {
     getAllTodos();
   }, [getAllTodos]);
 
   return (
-    <div className="App">
-      <button onClick={() => getAllTodos()}>Get Todos</button>
-      <button onClick={() => getTodosById(5264)}>Get Todo By Id</button>
-      <button onClick={() => addTodo({
-        completed: false,
-        title: 'Clean my room',
-        order: 1
-      })}>Add Todo</button>
-    </div>
+    <Layout>
+      <AddTodoForm addTodoItem={addTodo} />
+      <TodoList
+        items={todos}
+        onItemCheck={onCheckedItem}
+        onItemRemove={onDeleteItem}
+      />
+    </Layout>
   );
 }
 
