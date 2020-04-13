@@ -1,34 +1,21 @@
 /* tslint:disable */
 import { Reducer } from "@reduxjs/toolkit";
 
-import { IEndpointState, defaultEndpointState, EndpointMethodFactory, reducerRegistry, RequestMethod, AsyncMethodActions } from './';
+import { IEndpointState, defaultEndpointState, reducerRegistry, EndpointMethodMap } from './';
 
 // TODO: Create reductor base reducer
-// TODO: Accept a asyncActionOrchestrator function to configure saga flows
 
-export class EndpointSlice<
-  State,
-  GetRequestPayload = undefined, GetResponsePayload = undefined, GetErrorPayload = undefined, GetMethodProps = undefined,
-  PostRequestPayload = undefined, PostResponsePayload = undefined, PostErrorPayload = undefined, PostMethodProps = undefined
-  > {
+export class EndpointSlice<State> {
   public readonly name: string;
-  public readonly initialState: State & IEndpointState;
   public readonly baseUrl: string;
+  public readonly initialState: State & IEndpointState;
   private _reducer: Reducer<State & IEndpointState> | undefined;
 
   get reducer() {
     return this._reducer;
   }
-  
-  public Methods: {
-    GET: AsyncMethodActions<GetRequestPayload, GetResponsePayload, GetErrorPayload, GetMethodProps>,
-    POST: AsyncMethodActions<PostRequestPayload, PostResponsePayload, PostErrorPayload, PostMethodProps>
-  };
 
-  constructor(name: string, baseUrl: string, initialState: State, factories: {
-    GET: EndpointMethodFactory<GetRequestPayload, GetResponsePayload, GetErrorPayload, GetMethodProps>,
-    POST: EndpointMethodFactory<PostRequestPayload, PostResponsePayload, PostErrorPayload, PostMethodProps>
-  }) {
+  constructor(name: string, baseUrl: string, initialState: State, methods: EndpointMethodMap) {
     this.name = name;
     this.baseUrl = baseUrl;
 
@@ -37,28 +24,9 @@ export class EndpointSlice<
       ...initialState
     } as State & IEndpointState
 
-    const methodActions = {} as any;
-    for (const [method, factory] of Object.entries(factories)) {
-      methodActions[method] = factory.GetActions(this.name, method as RequestMethod)
-
-      // If the method has an async orchestrator, kick it off
-      if (factory.asyncOrchestrator) {
-        factory.asyncOrchestrator.orchestrate({
-          name: `${method}/${name}`,
-          actions: methodActions[method],
-          // TODO: Fix any types
-          apiFunction: (payload: any, props: any): any => {
-            return factory.apiFunction({
-              url: this.baseUrl,
-              method: method as RequestMethod,
-              payload,
-              props
-            });
-          }
-        });
-      }
+    for (const [methodName, method] of Object.entries(methods)) {
+      method.Orchestrate(this.name, this.baseUrl, methodName);
     }
-    this.Methods = methodActions;
   }
 
   public registerReducer(reducer: Reducer<State & IEndpointState>) {

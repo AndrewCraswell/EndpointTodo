@@ -1,10 +1,12 @@
 import { getType } from "typesafe-actions";
 import { createReducer } from "@reduxjs/toolkit";
 
-import { EndpointSlice, EndpointMethodFactory, SagaOrchestrator } from "../../endpoint";
+import { EndpointSlice, EndpointMethod, Orchestrators } from "../../endpoint";
 import { TodoApi } from "./api";
 import { ITodoItem } from "../../models";
-import { takeEvery, takeLeading } from "redux-saga/effects";
+
+// TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
+//  This will allow us to fix code-splitting
 
 interface ITodoSliceState {
   items: { [id: string]: ITodoItem };
@@ -14,35 +16,36 @@ export const initialState: ITodoSliceState = {
   items: {}
 }
 
+export const TodoMethods =   {
+  // TODO: Infer RequestPayload and ResponsePayload from Api method itself?
+  GetAll: new EndpointMethod<undefined, ITodoItem[]>('GET', TodoApi.getTodos, Orchestrators.takeLatest),
+  GetById: new EndpointMethod<number, ITodoItem>('GET', TodoApi.getTodoById, Orchestrators.takeEvery),
+  Add: new EndpointMethod<ITodoItem, ITodoItem>('POST', TodoApi.addTodo, Orchestrators.takeEvery),
+}
+
 export const TodoSlice = new EndpointSlice(
   'Todo',
   'https://todo-backend-typescript.herokuapp.com/',
   initialState,
-  {
-    // TODO: Infer RequestPayload and ResponsePayload from Api method itself
-    // TODO: Configure to be able to GET by Id or get all without an Id
-    GET: new EndpointMethodFactory<string | undefined, ITodoItem[] | ITodoItem>(TodoApi.getTodos, new SagaOrchestrator(takeLeading)),
-    POST: new EndpointMethodFactory<ITodoItem, ITodoItem>(TodoApi.addTodo, new SagaOrchestrator(takeEvery)),
-  }
+  TodoMethods
 )
 
 export const todoReducer = createReducer(TodoSlice.initialState, {
   // TODO: Don't depend on getType()
-  [getType(TodoSlice.Methods.GET.success)]: (state, action: ReturnType<typeof TodoSlice.Methods.GET.success>) => {
-    if (Array.isArray(action.payload)) {
-      action.payload.map((payload) => {
-        const id = payload.url ? payload.url.split('.com/')[1] : '';
-        return state.items[id] = payload;
-      });
-    } else {
-      const id = action.payload.url ? action.payload.url.split('.com/')[1] : '';
-      state.items[id] = action.payload;
-    }
+  [getType(TodoMethods.GetAll.Success)]: (state, action: ReturnType<typeof TodoMethods.GetAll.Success>) => {
+    action.payload.map((payload) => {
+      const id = payload.url ? payload.url.split('.com/')[1] : '';
+      return state.items[id] = payload;
+    });
   },
-  [getType(TodoSlice.Methods.POST.request)]: (state, action: ReturnType<typeof TodoSlice.Methods.POST.request>) => {
+  [getType(TodoMethods.GetById.Success)]: (state, action: ReturnType<typeof TodoMethods.GetById.Success>) => {
+    const id = action.payload.url ? action.payload.url.split('.com/')[1] : '';
+    state.items[id] = action.payload;
+  },
+  [getType(TodoMethods.Add.Execute)]: (state, action: ReturnType<typeof TodoMethods.Add.Execute>) => {
     state.items[0] = action.payload;
   },
-  [getType(TodoSlice.Methods.POST.success)]: (state, action: ReturnType<typeof TodoSlice.Methods.POST.success>) => {
+  [getType(TodoMethods.Add.Success)]: (state, action: ReturnType<typeof TodoMethods.Add.Success>) => {
     const id = action.payload.url ? action.payload.url.split('.com/')[1] : '';
     delete state.items[0];
     state.items[id] = action.payload;

@@ -6,14 +6,24 @@ import { ITodoItem } from "../../models";
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
 export class TodoApi {
   public static getTodos = (
-    config: EndpointApiFunctionConfig<string | undefined>
-  ): Promise<IRequestResponse<ITodoItem[] | ITodoItem>> => {
+    config: EndpointApiFunctionConfig
+  ): Promise<IRequestResponse<ITodoItem[]>> => {
+    const { url, method } = config;
+
+    return axios.request({
+      url,
+      method
+    });
+  };
+
+  public static getTodoById = (
+    config: EndpointApiFunctionConfig<number>
+  ): Promise<IRequestResponse<ITodoItem>> => {
     const { url, method, payload } = config;
 
     return axios.request({
-      url: `${url}${payload ? payload : ""}`,
-      method,
-      data: payload,
+      url: `${url}${payload}`,
+      method
     });
   };
 

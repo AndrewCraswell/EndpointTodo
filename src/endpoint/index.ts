@@ -1,6 +1,6 @@
 export * from './EndpointSlice';
 export * from './EndpointState';
-export * from './EndpointActions';
+export * from './EndpointMethod';
 export * from './RequestReponse';
 export * from './RequestMethod';
 export * from './EndpointRegistrarEnhancer';
@@ -12,3 +12,4 @@ export * from './PromiseType';
 export * from './SagaOrchestrator';
 export * from './AsyncOrchestrator';
 export * from './EffectCreator';
+export * from './useEndpointMethod';
