@@ -2,23 +2,21 @@ import { getType } from "typesafe-actions";
 import { createReducer } from "@reduxjs/toolkit";
 import { normalize } from 'normalizr';
 
-import { EndpointSlice, EndpointMethod, Orchestrators } from "../../endpoint";
+import { EndpointSlice, EndpointMethod, Orchestrators } from "../../../endpoint";
 import { TodoApi } from "./api";
-import { ITodoItem } from "../../models";
+import { ITodoItem, TodoMap } from "../../../models";
 import { todoListSchema } from './schema';
-import { getSortedTodoIds, normalizeSingleTodo } from '../../utils';
+import { getSortedTodoIds, normalizeSingleTodo } from '../../../utils';
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
-
-export type TodoMap = { [id: string]: ITodoItem };
 
 interface ITodoSliceState {
   items: TodoMap;
   ids: string[];
 }
 
-export const initialState: ITodoSliceState = {
+const initialState: ITodoSliceState = {
   items: {},
   ids: []
 }

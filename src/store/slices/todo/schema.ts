@@ -1,7 +1,7 @@
 import { schema } from 'normalizr';
 
-import { ITodoItem } from '../../models';
-import { getTodoId } from '../../utils';
+import { ITodoItem } from '../../../models';
+import { getTodoId } from '../../../utils';
 
 const todoSchema = new schema.Entity('todos', {}, {
   idAttribute: (todo: ITodoItem) => getTodoId(todo),

@@ -1,9 +1,8 @@
 import { v4 as uuid } from 'uuid';
 import { normalize } from 'normalizr';
 
-import { ITodoItem } from '../models';
-import { TodoMap } from "../slices/todo";
-import { todoListSchema } from '../slices/todo/schema';
+import { ITodoItem, TodoMap } from '../models';
+import { todoListSchema } from '../store/slices/todo/schema';
 
 export const getSortedTodoIds = (todos: TodoMap) => {
   return Object.values(todos).sort((a, b) => b.order - a.order).map((todo) => todo.id);
