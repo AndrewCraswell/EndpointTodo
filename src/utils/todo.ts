@@ -3,6 +3,7 @@ import { normalize } from 'normalizr';
 
 import { ITodoItem, TodoMap } from '../models';
 import { todoListSchema } from '../store/slices/todo/schema';
+import { TodoSlice } from '../store/slices/todo';
 
 export const getSortedTodoIds = (todos: TodoMap) => {
   return Object.values(todos).sort((a, b) => b.order - a.order).map((todo) => todo.id);
@@ -18,4 +19,13 @@ export const normalizeSingleTodo = (todo: ITodoItem): ITodoItem => {
   const { entities } = normalize([todo], todoListSchema);
     const items = entities.todos as TodoMap;
     return Object.values(items)[0]
+}
+
+export const addTodoToStore = (state: typeof TodoSlice.initialState, payload: ITodoItem) => {
+  const todo = normalizeSingleTodo(payload);
+
+  state.items[todo.id] = todo;
+  state.ids = getSortedTodoIds(state.items);
+
+  return state;
 }
