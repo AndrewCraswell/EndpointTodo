@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { normalize } from 'normalizr';
+import { PayloadAction } from 'typesafe-actions';
 
 import { ITodoItem, TodoMap } from '../models';
 import { todoListSchema } from '../store/slices/todo/schema';
@@ -21,8 +22,8 @@ export const normalizeSingleTodo = (todo: ITodoItem): ITodoItem => {
     return Object.values(items)[0]
 }
 
-export const addTodoToStore = (state: typeof TodoSlice.initialState, payload: ITodoItem) => {
-  const todo = normalizeSingleTodo(payload);
+export const addTodoToStore = (state: typeof TodoSlice.initialState, action: PayloadAction<any, ITodoItem>) => {
+  const todo = normalizeSingleTodo(action.payload);
 
   state.items[todo.id] = todo;
   state.ids = getSortedTodoIds(state.items);
