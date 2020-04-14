@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import { TextField, Paper, Button, Grid } from "@material-ui/core";
 import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
+import { v4 as uuid } from 'uuid';
 
 import { ITodoItem } from '../models';
 import { ApplicationState } from '../store';
@@ -27,7 +28,9 @@ const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
   });
 
   const onSubmit = (data: TodoForm) => {
+    const id = uuid();
     addTodoItem({
+      id,
       title: data.title,
       completed: false,
       order: nextOrderNum
