@@ -7,9 +7,9 @@ import {
   ListItemSecondaryAction
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
-import DragHandleRounded from "@material-ui/icons/DragHandleRounded";
 
 import { ITodoItem } from '../models';
+import TodoDragHandle from "./TodoDragHandle";
 
 interface ITodoListItem {
   divider: boolean;
@@ -31,9 +31,7 @@ const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
 
   return (
       <ListItem divider={divider}>
-        <IconButton aria-label="Reorder Todo">
-          <DragHandleRounded />
-        </IconButton>
+        <TodoDragHandle />
 
         <Checkbox
           onClick={onCheck}
