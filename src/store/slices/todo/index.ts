@@ -6,7 +6,7 @@ import { EndpointSlice, EndpointMethod, Orchestrators } from "../../../endpoint"
 import { TodoApi } from "./api";
 import { ITodoItem, TodoMap } from "../../../models";
 import { todoListSchema } from './schema';
-import { getSortedTodoIds, normalizeSingleTodo } from '../../../utils';
+import { getSortedTodoIds, normalizeSingleTodo, addTodoToStore } from '../../../utils';
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
@@ -39,7 +39,6 @@ export const TodoSlice = new EndpointSlice(
 
 const { Add, Delete, GetAll, GetById, Update } = TodoMethods;
 export const todoReducer = createReducer(TodoSlice.initialState, {
-  // TODO: Don't depend on getType()
   [getType(GetAll.Success)]: (state, action: ReturnType<typeof GetAll.Success>) => {
     const { entities } = normalize(action.payload, todoListSchema);
     const items = entities.todos as TodoMap;
@@ -48,19 +47,12 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     state.ids = getSortedTodoIds(items);
   },
   [getType(GetById.Success)]: (state, action: ReturnType<typeof GetById.Success>) => {
-    const todo = normalizeSingleTodo(action.payload);
-
-    state.items[todo.id] = todo;
-    state.ids = getSortedTodoIds(state.items);
+    state = addTodoToStore(state, action.payload);
   },
   [getType(Add.Execute)]: (state, action: ReturnType<typeof Add.Execute>) => {
-    const todo = normalizeSingleTodo(action.payload);
-
-    state.items[todo.id] = todo;
-    state.ids = getSortedTodoIds(state.items);
+    state = addTodoToStore(state, action.payload);
   },
   [getType(Add.Success)]: (state, action: ReturnType<typeof Add.Success>) => {
-    // TODO: Remove the temp todo that was added
     const todo = normalizeSingleTodo(action.payload);
 
     delete state.items[action.meta.params.id];
@@ -74,10 +66,7 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     state.ids = getSortedTodoIds(state.items);
   },
   [getType(Update.Execute)]: (state, action: ReturnType<typeof Update.Execute>) => {
-    const todo = normalizeSingleTodo(action.payload);
-
-    state.items[todo.id] = todo;
-    state.ids = getSortedTodoIds(state.items);
+    state = addTodoToStore(state, action.payload);
   },
 })
 
