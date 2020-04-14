@@ -1,11 +1,10 @@
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback } from "react";
 import {
   ListItem,
   Checkbox,
   IconButton,
   ListItemText,
-  ListItemSecondaryAction,
-  Slide
+  ListItemSecondaryAction
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
 import DragHandleRounded from "@material-ui/icons/DragHandleRounded";
@@ -21,19 +20,16 @@ interface ITodoListItem {
 
 const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
   const { item, divider, onButtonClick, onCheckBoxToggle } = props;
-  const [isTransitionIn, setIsTransitionIn] = useState(true);
 
   const onCheck = useCallback(() => {
     onCheckBoxToggle(item);
   }, [onCheckBoxToggle, item]);
 
   const onRemove = useCallback(() => {
-    setIsTransitionIn(false);
     onButtonClick(item);
   }, [onButtonClick, item]);
 
   return (
-    <Slide direction="up" in={isTransitionIn} unmountOnExit>
       <ListItem divider={divider}>
         <IconButton aria-label="Reorder Todo">
           <DragHandleRounded />
@@ -57,7 +53,6 @@ const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
           </IconButton>
         </ListItemSecondaryAction>
       </ListItem>
-    </Slide>
   );
 });
 

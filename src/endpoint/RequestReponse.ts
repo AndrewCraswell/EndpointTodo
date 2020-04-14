@@ -1,4 +1,4 @@
-export interface IRequestResponse<T> {
+export interface IRequestResponse<T = any> {
   config: { [key: string]: any };
   data: T;
   headers: { [key: string]: any };

@@ -1,10 +1,11 @@
 import { RequestMethod, IRequestResponse } from ".";
+import { IAsyncOrchestrationProps } from "./";
 
 export type EndpointApiFunctionConfig<RequestPayload = undefined, MethodProps = undefined> = {
   url: string,
   method: RequestMethod,
   payload?: RequestPayload,
-  props?: MethodProps
+  props?: IAsyncOrchestrationProps<RequestPayload, MethodProps>
 }
 
 export type EndpointApiFunction<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined> = (
@@ -12,4 +13,4 @@ export type EndpointApiFunction<RequestPayload = undefined, ResponsePayload = un
 ) => Promise<IRequestResponse<ResponsePayload>>
 
 export type EndpointHandledApiFunction<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined> =
-  (payload: RequestPayload, props: MethodProps) => Promise<IRequestResponse<ResponsePayload>>;
+  (payload: RequestPayload, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>) => Promise<IRequestResponse<ResponsePayload>>;

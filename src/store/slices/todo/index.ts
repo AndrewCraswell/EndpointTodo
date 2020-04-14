@@ -63,6 +63,7 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     // TODO: Remove the temp todo that was added
     const todo = normalizeSingleTodo(action.payload);
 
+    delete state.items[action.meta.params.id];
     state.items[todo.id] = todo;
     state.ids = getSortedTodoIds(state.items);
   },

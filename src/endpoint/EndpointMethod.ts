@@ -1,6 +1,6 @@
 import { createAsyncAction, ActionCreatorBuilder } from "typesafe-actions";
 
-import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator } from '.';
+import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps } from '.';
 
 // TODO: Get action type names as a getter
 // TODO: Migrate from typesafe-actions to Async
@@ -13,9 +13,9 @@ export interface IEndpointMethod {
   Orchestrate(sliceName: string, baseUrl: string, methodName?: string): void;
 }
 
-export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefined, ErrorPayload = undefined, MethodProps = undefined> implements IEndpointMethod {
+export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined> implements IEndpointMethod {
   private _sliceName: string | undefined;
-  private _actions: AsyncMethodActions<RequestPayload, ResponsePayload, ErrorPayload, MethodProps>
+  private _actions: AsyncMethodActions<RequestPayload, ResponsePayload, MethodProps>
   private _name: string | undefined;
 
   private readonly apiFunction: EndpointApiFunction<RequestPayload, ResponsePayload, MethodProps>;
@@ -24,8 +24,8 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
 
   // References to the underlying actions
   public Execute: ActionCreatorBuilder<string, RequestPayload, MethodProps>;
-  public Success: ActionCreatorBuilder<string, ResponsePayload, MethodProps>;
-  public Failure: ActionCreatorBuilder<string, ErrorPayload, MethodProps>;
+  public Success: ActionCreatorBuilder<string, ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+  public Failure: ActionCreatorBuilder<string, Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
 
   constructor(
     method: keyof typeof RequestMethod,
@@ -54,7 +54,7 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
       this.asyncOrchestrator.orchestrate({
         name: `${sliceName}/${methodName}`,
         actions: this._actions,
-        apiFunction: (payload: RequestPayload, props: MethodProps): ReturnType<typeof apiFunction> => {
+        apiFunction: (payload: RequestPayload, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>): ReturnType<typeof apiFunction> => {
           return apiFunction({
             url: baseUrl,
             method: this.method,
@@ -78,8 +78,8 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
 
     const actions = createAsyncAction(`${slicePrefix}/Execute`, `${slicePrefix}/Success`, `${slicePrefix}/Failure`)<
     [RequestPayload, MethodProps],
-    [ResponsePayload, MethodProps],
-    [ErrorPayload, MethodProps]
+    [ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>],
+    [Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>]
     >();
 
     this._actions = actions;

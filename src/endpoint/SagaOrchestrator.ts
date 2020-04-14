@@ -2,7 +2,7 @@
 import { call, put, takeLeading, takeEvery, takeLatest } from 'redux-saga/effects';
 import { AnyAction } from 'redux';
 
-import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig } from '.';
+import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationProps } from '.';
 import { sagaRegistry } from './SagaRegistry';
 
 class SagaOrchestrator implements AsyncOrchestrator {
@@ -13,8 +13,8 @@ class SagaOrchestrator implements AsyncOrchestrator {
     this.effect = effect;
   };
 
-  public orchestrate<RequestPayload = undefined, ResponsePayload = undefined, ErrorPayload = undefined, MethodProps = undefined>(
-    config: AsyncOrchestratorConfig<RequestPayload, ResponsePayload, ErrorPayload, MethodProps>
+  public orchestrate<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined>(
+    config: AsyncOrchestratorConfig<RequestPayload, ResponsePayload, MethodProps>
   ) {
       const { name, actions, apiFunction } = config;
       const that = this;
@@ -25,59 +25,32 @@ class SagaOrchestrator implements AsyncOrchestrator {
       }
 
       // Default implementation of the saga to handle the Execution action workflow
-      function *asyncSaga<MethodAction extends AnyAction>(action: MethodAction): Generator {
-        // const request = action.meta.request;
-        // const props: PassThroughProps = {
-        //   ...this._defaultPassThroughProps,
-        //   ...action.meta.props,
-        // };
-
-        // Construct a result object with meta data representing all aspects of the request
-        //  to be handed to the success or error callbacks
-        // const actionResult: IEndpointActionMeta<RequestBody, PassThroughProps> = {
-        //   request,
-        //   props,
-        // };
+      function *asyncSaga(action: AnyAction): Generator {
+        const props = {
+          params: action.payload as RequestPayload,
+          ...action.meta
+        } as MethodProps & IAsyncOrchestrationProps<RequestPayload, MethodProps>;
 
         try {
-          // Attempt to call the Api endpoint
-          //if (!props.reducerOnly) {
-            // TODO: Fix the return type being set to ANY
-            // TODO: action.meta should be a config object that includes props
-            let response: PromiseType<ReturnType<typeof apiFunction>> | any = yield call(apiFunction, action.payload, action.meta);
-          //}
+          const yielded = yield call(apiFunction, action.payload, props);
 
-          // Add the response data to the result object
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          //const { config = {}, data = {}, ...trimmedResponse } = response || {};
-          //actionResult.response = trimmedResponse;
+          const { config = {}, data, ...propsResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
+          props.response = propsResponse;
 
-          // Reset the failed count before executing the success handler
-          // actionResult.props = {
-          //   ...actionResult.props,
-          //   ...this._defaultPassThroughProps,
-          // };
-
-          const data = response ? response.data : undefined;
-          const successAction = actions.success(data, {} as MethodProps);
+          const successAction = actions.success(data, props);
           yield put(successAction);
           //yield* this.onSuccessExecuted(successAction, actionResult);
         } catch (err) {
-          // Increment the response object failed count
-          // actionResult.props = {
-          //   ...actionResult.props,
-          //   failedCount: ((actionResult.props && actionResult.props.failedCount) || 0) + 1,
-          // } as PassThroughProps & IEndpointPassThroughProps;
-
           if (err.request) {
             // The request was made and the server responded with a
             // status code that falls out of the range of 2xx
-            const errorAction = actions.failure(err.stack! as ErrorPayload, {} as MethodProps);
+            const errorAction = actions.failure(err, props);
             yield put(errorAction);
             //yield* this.onErrorExecuted(errorAction, err.stack!, err.response);
           } else if (err instanceof Error) {
             // Something happened in setting up the request and triggered an Error
-            const errorAction = actions.failure({} as ErrorPayload, {} as MethodProps);
+            const errorAction = actions.failure(err, props);
             yield put(errorAction);
             //yield* this.onErrorExecuted(errorAction, err.message, actionResult);
           }
