@@ -11,6 +11,8 @@ import { getSortedTodoIds, normalizeSingleTodo, addTodoToStore } from '../../../
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
 
+// TODO: Add error cases and add the data back in
+
 interface ITodoSliceState {
   items: TodoMap;
   ids: string[];
@@ -46,12 +48,8 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     state.items = items;
     state.ids = getSortedTodoIds(items);
   },
-  [getType(GetById.Success)]: (state, action: ReturnType<typeof GetById.Success>) => {
-    state = addTodoToStore(state, action.payload);
-  },
-  [getType(Add.Execute)]: (state, action: ReturnType<typeof Add.Execute>) => {
-    state = addTodoToStore(state, action.payload);
-  },
+  [getType(GetById.Success)]: addTodoToStore,
+  [getType(Add.Execute)]: addTodoToStore,
   [getType(Add.Success)]: (state, action: ReturnType<typeof Add.Success>) => {
     const todo = normalizeSingleTodo(action.payload);
 
@@ -65,9 +63,7 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     delete state.items[todo.id];
     state.ids = getSortedTodoIds(state.items);
   },
-  [getType(Update.Execute)]: (state, action: ReturnType<typeof Update.Execute>) => {
-    state = addTodoToStore(state, action.payload);
-  },
+  [getType(Update.Execute)]: addTodoToStore,
 })
 
 TodoSlice.registerReducer(todoReducer);
