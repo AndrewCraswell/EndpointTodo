@@ -46,7 +46,7 @@ const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
           <Grid xs={10} md={11} item style={{ paddingRight: 16 }}>
             <TextField
               name="title"
-              placeholder="Add Todo here"
+              placeholder="Todo description..."
               fullWidth
               inputRef={register}
             />

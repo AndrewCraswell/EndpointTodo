@@ -7,7 +7,7 @@ import { todoListSchema } from '../store/slices/todo/schema';
 import { TodoSlice } from '../store/slices/todo';
 
 export const getSortedTodoIds = (todos: TodoMap) => {
-  return Object.values(todos).sort((a, b) => b.order - a.order).map((todo) => todo.id);
+  return Object.values(todos).sort((a, b) => a.order - b.order).map((todo) => todo.id);
 };
 
 export const getTodoId = (todo: ITodoItem) => {
