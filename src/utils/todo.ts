@@ -1,6 +1,6 @@
-import { v4 as uuid } from 'uuid';
 import { normalize } from 'normalizr';
 import { PayloadAction } from 'typesafe-actions';
+import { nanoid } from '@reduxjs/toolkit';
 
 import { ITodoItem, TodoMap } from '../models';
 import { todoListSchema } from '../store/slices/todo/schema';
@@ -13,7 +13,7 @@ export const getSortedTodoIds = (todos: TodoMap) => {
 export const getTodoId = (todo: ITodoItem) => {
   if (todo.id) return todo.id;
 
-  return todo.url ? todo.url.split('.com/')[1] : uuid();
+  return todo.url ? todo.url.split('.com/')[1] : nanoid();
 };
 
 export const normalizeSingleTodo = (todo: ITodoItem): ITodoItem => {

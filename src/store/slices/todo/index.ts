@@ -52,14 +52,12 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
   [getType(Add.Execute)]: addTodoToStore,
   [getType(Add.Success)]: (state, action: ReturnType<typeof Add.Success>) => {
     const todo = normalizeSingleTodo(action.payload);
-
     delete state.items[action.meta.params.id];
     state.items[todo.id] = todo;
     state.ids = getSortedTodoIds(state.items);
   },
   [getType(Delete.Execute)]: (state, action: ReturnType<typeof Delete.Execute>) => {
     const todo = normalizeSingleTodo(action.payload);
-
     delete state.items[todo.id];
     state.ids = getSortedTodoIds(state.items);
   },
