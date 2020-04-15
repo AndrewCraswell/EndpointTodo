@@ -3,8 +3,6 @@ import { createAsyncAction, ActionCreatorBuilder } from "typesafe-actions";
 import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps } from '.';
 
 // TODO: Get action type names as a getter
-// TODO: Migrate from typesafe-actions to Async
-
 export type EndpointMethodMap = {
   [name: string]: IEndpointMethod
 }
@@ -22,6 +20,13 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
   private readonly method: RequestMethod;
   private readonly asyncOrchestrator: AsyncOrchestrator | undefined;
 
+  // List of Action Types
+  public Types: {
+    Execute: string,
+    Success: string,
+    Failure: string
+  }
+
   // References to the underlying actions
   public Execute: ActionCreatorBuilder<string, RequestPayload, MethodProps>;
   public Success: ActionCreatorBuilder<string, ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
@@ -37,6 +42,7 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
     this.asyncOrchestrator = asyncOrchestrator;
 
     const actions = this.CreateActions();
+    this.Types = this.GetActionTypes();
 
     this._actions = actions;
     [this.Execute, this.Success, this.Failure] = [actions.request, actions.success, actions.failure];
@@ -67,16 +73,9 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
   }
 
   private CreateActions() {
-    let slicePrefix: string = this.method;
-    if (this._sliceName) {
-      if (this._name) {
-        slicePrefix = `${this._sliceName}/${this._name}`;
-      } else {
-        slicePrefix = `${this.method}/${this._sliceName}`;
-      }
-    }
+    this.Types = this.GetActionTypes();
 
-    const actions = createAsyncAction(`${slicePrefix}/Execute`, `${slicePrefix}/Success`, `${slicePrefix}/Failure`)<
+    const actions = createAsyncAction(this.Types.Execute, this.Types.Success, this.Types.Failure)<
     [RequestPayload, MethodProps],
     [ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>],
     [Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>]
@@ -87,4 +86,23 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
 
     return actions;
   };
+
+  private GetActionTypes() {
+    let slicePrefix: string = `@Restux`;
+    if (this._sliceName) {
+      if (this._name) {
+        slicePrefix = `${slicePrefix}/${this._sliceName}/${this._name}`;
+      } else {
+        slicePrefix = `${slicePrefix}/${this._name}`;
+      }
+    } else {
+      slicePrefix = `${slicePrefix}/${this.method}`
+    }
+
+    return {
+      Execute: `${slicePrefix}/Execute`,
+      Success: `${slicePrefix}/Success`,
+      Failure: `${slicePrefix}/Failure`
+    }
+  }
 }
