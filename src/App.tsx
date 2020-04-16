@@ -36,7 +36,13 @@ function App() {
     const sortable = [...items];
     moveArray(sortable, oldIndex, newIndex);
 
-    for (let i = newIndex; i <= oldIndex; i++) {
+    let startIndex = newIndex, endIndex = oldIndex;
+    if (newIndex > oldIndex) {
+      startIndex = oldIndex;
+      endIndex = newIndex;
+    }
+
+    for (let i = startIndex; i <= endIndex; i++) {
       sortable[i] = { ...sortable[i], order: i + 1 };
       updateTodo(sortable[i]);
     }
