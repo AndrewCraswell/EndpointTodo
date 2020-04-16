@@ -8,7 +8,7 @@ import { ITodoItem } from '../models';
 import { ApplicationState } from '../store';
 
 interface IAddTodoForm {
-  addTodoItem: (item: ITodoItem) => void
+  addTodoItem: (item: ITodoItem, props: void) => void
 }
 
 type TodoForm = {

@@ -1,6 +1,6 @@
 /* tslint:disable */
 import { Reducer, AnyAction } from "@reduxjs/toolkit";
-import { produce, Draft } from "immer";
+import { produce, enablePatches, Patch, applyPatches } from "immer";
 
 import {
   IEndpointState,
@@ -9,7 +9,8 @@ import {
   EndpointMethodMap,
 } from "./";
 
-// TODO: Create reductor base reducer
+// Enable the Immer patches feature
+enablePatches();
 
 export class EndpointSlice<State> {
   public readonly name: string;
@@ -18,6 +19,7 @@ export class EndpointSlice<State> {
 
   private _reducer: Reducer<State & IEndpointState> | undefined;
   private _reductor: Reducer<IEndpointState & State, AnyAction>;
+  private _patches: Map<string, Patch[]> = new Map<string, Patch[]>();
 
   get reducer() {
     return this._reducer;
@@ -37,17 +39,19 @@ export class EndpointSlice<State> {
       ...initialState,
     } as State & IEndpointState;
 
+    // TODO: Bind this reducer to only handle events from the slice
     this._reductor = (
       baseState: IEndpointState & State = this.initialState,
       action: AnyAction
     ) => {
-      return produce(baseState, (state: Draft<IEndpointState & State>) => {
+      return produce(baseState, (state) => {
         const actionType = action.type;
 
         if (actionType && isNaN(Number(actionType))) {
           const type = actionType as string;
           if (type.startsWith("@Restux")) {
             const asyncType = type.split("/").pop();
+            const id = action.meta.id;
             switch (asyncType) {
               case "Execute":
                 state.isFetching = true;
@@ -57,11 +61,20 @@ export class EndpointSlice<State> {
                 state.isFetching = false;
                 state.isFetched = true;
                 state.isError = false;
+
+                // Remove any patches being tracked for rollback
+                this._patches.delete(id);
                 break;
               case "Failure":
                 state.isFetching = false;
                 state.isFetched = true;
                 state.isError = true;
+
+                // Rollback any changes that were made optimistically
+                if (this._patches.has(id)) {
+                  applyPatches(state, this._patches.get(id)!);
+                  this._patches.delete(id);
+                }
                 break;
             }
           }
@@ -74,12 +87,30 @@ export class EndpointSlice<State> {
     }
   }
 
+  // Allow the different reducers to be registered
   public registerReducer(reducer: Reducer<State & IEndpointState>) {
+    const that = this;
+
     this._reducer = (
       state: IEndpointState & State = this.initialState,
       action: AnyAction
     ) => {
-      return this._reductor(reducer(state, action), action);
+      function injectImmer(baseState: IEndpointState & State, action: AnyAction) {
+        return produce(baseState, (draft: any) => { reducer(draft, action); }, (patches, inverse) => {
+          const id = action?.meta?.id;
+          const isDisabled = action?.meta?.disableRollback;
+
+          if (id && !isDisabled && patches.length) {
+            if(that._patches.has(id)) {
+              that._patches.get(id)?.concat(inverse);
+            } else {
+              that._patches.set(id, inverse);
+            }
+          }
+        });
+      }
+
+      return this._reductor(injectImmer(state, action), action);
     };
 
     reducerRegistry.register(this.name, this._reducer);

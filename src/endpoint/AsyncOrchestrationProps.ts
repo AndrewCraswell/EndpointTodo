@@ -1,7 +1,12 @@
 import { IRequestResponse } from ".";
 
-export interface IAsyncOrchestrationProps<RequestPayload = undefined, MethodProps = undefined> {
+export interface IEndpointMethodProps {
+  id?: string,
+  disableRollback?: boolean
+}
+
+export interface IAsyncOrchestrationProps<RequestPayload = void, MethodProps = void> {
   params: RequestPayload,
-  props: MethodProps,
-  response: Omit<IRequestResponse, 'data'|'config'>
+  props: MethodProps & IEndpointMethodProps,
+  response: Omit<IRequestResponse, 'data'|'config'|'request'>
 }

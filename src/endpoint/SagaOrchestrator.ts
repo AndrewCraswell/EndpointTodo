@@ -13,7 +13,7 @@ class SagaOrchestrator implements AsyncOrchestrator {
     this.effect = effect;
   };
 
-  public orchestrate<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined>(
+  public orchestrate<RequestPayload = void, ResponsePayload = void, MethodProps = void>(
     config: AsyncOrchestratorConfig<RequestPayload, ResponsePayload, MethodProps>
   ) {
       const { name, actions, apiFunction } = config;
@@ -21,7 +21,7 @@ class SagaOrchestrator implements AsyncOrchestrator {
 
       // Determine how to watch the execution scenario
       function *rootSaga(): Generator {
-        yield that.effect(actions.request, asyncSaga);
+        yield that.effect(actions.Execute, asyncSaga);
       }
 
       // Default implementation of the saga to handle the Execution action workflow
@@ -34,23 +34,24 @@ class SagaOrchestrator implements AsyncOrchestrator {
         try {
           const yielded = yield call(apiFunction, action.payload, props);
 
+          // We destructure away some items we don't want stored in Redux to reduce verbosity
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { config = {}, data, ...propsResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
+          const { config = {}, data, request, ...propsResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
           props.response = propsResponse;
 
-          const successAction = actions.success(data, props);
+          const successAction = actions.Success(data, props);
           yield put(successAction);
           //yield* this.onSuccessExecuted(successAction, actionResult);
         } catch (err) {
           if (err.request) {
             // The request was made and the server responded with a
             // status code that falls out of the range of 2xx
-            const errorAction = actions.failure(err, props);
+            const errorAction = actions.Failure(err, props);
             yield put(errorAction);
             //yield* this.onErrorExecuted(errorAction, err.stack!, err.response);
           } else if (err instanceof Error) {
             // Something happened in setting up the request and triggered an Error
-            const errorAction = actions.failure(err, props);
+            const errorAction = actions.Failure(err, props);
             yield put(errorAction);
             //yield* this.onErrorExecuted(errorAction, err.message, actionResult);
           }

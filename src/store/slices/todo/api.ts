@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { IRequestResponse, EndpointApiFunctionConfig } from "../../../endpoint";
+import { IRequestResponse, EndpointApiFunctionConfig, IEndpointMethodProps } from "../../../endpoint";
 import { ITodoItem } from "../../../models";
 
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
