@@ -1,4 +1,4 @@
-import { createAsyncAction, ActionCreatorBuilder } from "typesafe-actions";
+import { createAction, ActionCreatorWithPreparedPayload } from "@reduxjs/toolkit";
 
 import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps } from '.';
 
@@ -11,9 +11,9 @@ export interface IEndpointMethod {
   Orchestrate(sliceName: string, baseUrl: string, methodName?: string): void;
 }
 
-export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined> implements IEndpointMethod {
+export class EndpointMethod<RequestPayload = void, ResponsePayload = void, MethodProps = void> implements IEndpointMethod {
   private _sliceName: string | undefined;
-  private _actions: AsyncMethodActions<RequestPayload, ResponsePayload, MethodProps>
+  private _actions: AsyncMethodActions<RequestPayload, ResponsePayload, MethodProps>;
   private _name: string | undefined;
 
   private readonly apiFunction: EndpointApiFunction<RequestPayload, ResponsePayload, MethodProps>;
@@ -28,9 +28,10 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
   }
 
   // References to the underlying actions
-  public Execute: ActionCreatorBuilder<string, RequestPayload, MethodProps>;
-  public Success: ActionCreatorBuilder<string, ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
-  public Failure: ActionCreatorBuilder<string, Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+  public Execute: ActionCreatorWithPreparedPayload<[RequestPayload, MethodProps], RequestPayload, string, never, MethodProps>;
+  public Success: ActionCreatorWithPreparedPayload<[ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>], ResponsePayload, string, never, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+  public Failure: ActionCreatorWithPreparedPayload<[Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>], Error, string, never, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+
 
   constructor(
     method: keyof typeof RequestMethod,
@@ -45,7 +46,7 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
     this.Types = this.GetActionTypes();
 
     this._actions = actions;
-    [this.Execute, this.Success, this.Failure] = [actions.request, actions.success, actions.failure];
+    [this.Execute, this.Success, this.Failure] = [actions.Execute, actions.Success, actions.Failure];
   }
 
   public Orchestrate(sliceName: string, baseUrl: string, methodName: string) {
@@ -75,16 +76,22 @@ export class EndpointMethod<RequestPayload = undefined, ResponsePayload = undefi
   private CreateActions() {
     this.Types = this.GetActionTypes();
 
-    const actions = createAsyncAction(this.Types.Execute, this.Types.Success, this.Types.Failure)<
-    [RequestPayload, MethodProps],
-    [ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>],
-    [Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>]
-    >();
+    this.Execute = createAction(this.Types.Execute,
+      (params: RequestPayload, props: MethodProps) => ({ payload: params, meta: props }));
 
-    this._actions = actions;
-    [this.Execute, this.Success, this.Failure] = [actions.request, actions.success, actions.failure];
+    this.Success = createAction(this.Types.Success,
+      (params: ResponsePayload, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
-    return actions;
+    this.Failure = createAction(this.Types.Failure,
+      (params: Error, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+
+    this._actions = {
+      Execute: this.Execute,
+      Success: this.Success,
+      Failure: this.Failure
+    };
+
+    return this._actions;
   };
 
   private GetActionTypes() {

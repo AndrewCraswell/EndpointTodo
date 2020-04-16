@@ -1,6 +1,5 @@
 import { normalize } from 'normalizr';
-import { PayloadAction } from 'typesafe-actions';
-import { nanoid } from '@reduxjs/toolkit';
+import { nanoid, PayloadAction } from '@reduxjs/toolkit';
 
 import { ITodoItem, TodoMap } from '../models';
 import { todoListSchema } from '../store/slices/todo/schema';
@@ -22,7 +21,7 @@ export const normalizeSingleTodo = (todo: ITodoItem): ITodoItem => {
     return Object.values(items)[0]
 }
 
-export const addTodoToStore = (state: typeof TodoSlice.initialState, action: PayloadAction<any, ITodoItem>) => {
+export const addTodoToStore = (state: typeof TodoSlice.initialState, action: PayloadAction<ITodoItem, any>) => {
   const todo = normalizeSingleTodo(action.payload);
 
   state.items[todo.id] = todo;

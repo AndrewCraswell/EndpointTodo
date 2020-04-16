@@ -1,6 +1,6 @@
 /* tslint:disable */
 import { Reducer, AnyAction } from "@reduxjs/toolkit";
-import { produce, Draft } from "immer";
+import { produce, enablePatches } from "immer";
 
 import {
   IEndpointState,
@@ -9,7 +9,8 @@ import {
   EndpointMethodMap,
 } from "./";
 
-// TODO: Create reductor base reducer
+// Enable the Immer patches feature
+enablePatches();
 
 export class EndpointSlice<State> {
   public readonly name: string;
@@ -41,7 +42,7 @@ export class EndpointSlice<State> {
       baseState: IEndpointState & State = this.initialState,
       action: AnyAction
     ) => {
-      return produce(baseState, (state: Draft<IEndpointState & State>) => {
+      return produce(baseState, (state) => {
         const actionType = action.type;
 
         if (actionType && isNaN(Number(actionType))) {
@@ -66,6 +67,8 @@ export class EndpointSlice<State> {
             }
           }
         }
+      }, (patches, inverse) => {
+        //console.log(patches);
       });
     };
 
@@ -79,7 +82,17 @@ export class EndpointSlice<State> {
       state: IEndpointState & State = this.initialState,
       action: AnyAction
     ) => {
-      return this._reductor(reducer(state, action), action);
+      function injectImmer(baseState: IEndpointState & State, action: AnyAction) {
+        const result = produce(baseState, (draft: any) => {
+          reducer(draft, action);
+        }, (patches, inverse) => {
+          // Library is listening for these patches...
+        });
+
+        return result;
+      }
+
+      return this._reductor(injectImmer(state, action), action);
     };
 
     reducerRegistry.register(this.name, this._reducer);

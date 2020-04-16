@@ -1,9 +1,10 @@
-import { ActionCreatorBuilder } from "typesafe-actions";
+
+import { ActionCreatorWithPreparedPayload } from "@reduxjs/toolkit";
 
 import { IAsyncOrchestrationProps } from "./";
 
-export type AsyncMethodActions<RequestPayload = undefined, ResponsePayload = undefined, MethodProps = undefined> = {
-  request: ActionCreatorBuilder<string, RequestPayload, MethodProps>;
-  success: ActionCreatorBuilder<string, ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
-  failure: ActionCreatorBuilder<string, Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+export type AsyncMethodActions<RequestPayload = void, ResponsePayload = void, MethodProps = void> = {
+  Execute: ActionCreatorWithPreparedPayload<[RequestPayload, MethodProps], RequestPayload, string, never, MethodProps>;
+  Success: ActionCreatorWithPreparedPayload<[ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>], ResponsePayload, string, never, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+  Failure: ActionCreatorWithPreparedPayload<[Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>], Error, string, never, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
 };
