@@ -1,6 +1,7 @@
 import { createAction, ActionCreatorWithPreparedPayload, nanoid } from "@reduxjs/toolkit";
 
 import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps } from '.';
+import { IEndpointMethodProps } from "./AsyncOrchestrationProps";
 
 // TODO: Get action type names as a getter
 export type EndpointMethodMap = {
@@ -11,7 +12,7 @@ export interface IEndpointMethod {
   Orchestrate(sliceName: string, baseUrl: string, methodName?: string): void;
 }
 
-export class EndpointMethod<RequestPayload = void, ResponsePayload = void, MethodProps = void> implements IEndpointMethod {
+export class EndpointMethod<RequestPayload = void, ResponsePayload = void, MethodProps = IEndpointMethodProps | void> implements IEndpointMethod {
   private _sliceName: string | undefined;
   private _actions: AsyncMethodActions<RequestPayload, ResponsePayload, MethodProps>;
   private _name: string | undefined;
@@ -76,7 +77,7 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     this.Types = this.GetActionTypes();
 
     this.Execute = createAction(this.Types.Execute,
-      (params: RequestPayload, props: MethodProps) => ({ payload: params, meta: { ...props, id: nanoid() } }));
+      (params: RequestPayload, props: MethodProps & IEndpointMethodProps) => ({ payload: params, meta: { ...props, id: props?.id || nanoid() } }));
 
     this.Success = createAction(this.Types.Success,
       (params: ResponsePayload, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));

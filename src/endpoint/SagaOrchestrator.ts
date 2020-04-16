@@ -34,8 +34,9 @@ class SagaOrchestrator implements AsyncOrchestrator {
         try {
           const yielded = yield call(apiFunction, action.payload, props);
 
+          // We destructure away some items we don't want stored in Redux to reduce verbosity
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { config = {}, data, ...propsResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
+          const { config = {}, data, request, ...propsResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
           props.response = propsResponse;
 
           const successAction = actions.Success(data, props);

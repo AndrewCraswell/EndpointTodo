@@ -1,7 +1,8 @@
 import { RequestMethod, IRequestResponse } from ".";
 import { IAsyncOrchestrationProps } from "./";
+import { IEndpointMethodProps } from "./AsyncOrchestrationProps";
 
-export type EndpointApiFunctionConfig<RequestPayload = void, MethodProps = void> = {
+export type EndpointApiFunctionConfig<RequestPayload = void, MethodProps = IEndpointMethodProps | void> = {
   url: string,
   method: RequestMethod,
   payload?: RequestPayload,

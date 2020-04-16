@@ -1,7 +1,7 @@
 import { createReducer } from "@reduxjs/toolkit";
 import { normalize } from 'normalizr';
 
-import { EndpointSlice, EndpointMethod, Orchestrators } from "../../../endpoint";
+import { EndpointSlice, EndpointMethod, Orchestrators, IEndpointMethodProps } from "../../../endpoint";
 import { TodoApi } from "./api";
 import { ITodoItem, TodoMap } from "../../../models";
 import { todoListSchema } from './schema';
