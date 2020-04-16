@@ -3,8 +3,6 @@ import { all, fork } from 'redux-saga/effects';
 
 import { AsyncRegistry, AsyncItemRegistrar } from './AsyncRegistry';
 
-// TODO: Fix the types on registerAnthology and getAnthologySaga
-
 export interface IAnthology {
   /** The name of the anthology */
   name: string;

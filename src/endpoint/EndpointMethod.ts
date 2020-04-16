@@ -3,7 +3,6 @@ import { createAction, ActionCreatorWithPreparedPayload, nanoid } from "@reduxjs
 import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps } from '.';
 import { IEndpointMethodProps } from "./AsyncOrchestrationProps";
 
-// TODO: Get action type names as a getter
 export type EndpointMethodMap = {
   [name: string]: IEndpointMethod
 }
