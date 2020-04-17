@@ -1,6 +1,6 @@
-import { createAction, ActionCreatorWithPreparedPayload, nanoid } from "@reduxjs/toolkit";
+import { createAction, nanoid } from "@reduxjs/toolkit";
 
-import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps } from '.';
+import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
 import { IEndpointMethodProps } from "./AsyncOrchestrationProps";
 
 export type EndpointMethodMap = {
@@ -28,9 +28,9 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
   }
 
   // References to the underlying actions
-  public Execute: ActionCreatorWithPreparedPayload<[RequestPayload, MethodProps], RequestPayload, string, never, MethodProps>;
-  public Success: ActionCreatorWithPreparedPayload<[ResponsePayload, IAsyncOrchestrationProps<RequestPayload, MethodProps>], ResponsePayload, string, never, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
-  public Failure: ActionCreatorWithPreparedPayload<[Error, IAsyncOrchestrationProps<RequestPayload, MethodProps>], Error, string, never, IAsyncOrchestrationProps<RequestPayload, MethodProps>>;
+  public Execute: AsyncExecuteActionCreator<RequestPayload, MethodProps>;
+  public Success: AsyncSuccessActionCreator<RequestPayload, ResponsePayload, MethodProps>;
+  public Failure: AsyncFailureActionCreator<RequestPayload, MethodProps>;
 
   constructor(
     method: keyof typeof RequestMethod,
