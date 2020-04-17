@@ -33,7 +33,6 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
       id: action.payload.url,
       changes: action.payload
     });
-    //todoAdapter.addOne(state, action.payload);
   },
 })
 
