@@ -9,6 +9,7 @@
     "axios": "^0.19.2",
     "axios-cache-adapter": "^2.5.0",
     "immer": "^6.0.3",
+    "notistack": "^0.9.9",
     "react": "16.13.1",
     "react-dom": "^16.13.1",
     "react-hook-form": "^5.4.0",

@@ -14,3 +14,4 @@ export * from './AsyncOrchestrator';
 export * from './EffectCreator';
 export * from './useEndpointMethod';
 export * from './AsyncOrchestrationProps';
+export * from './OptionalMethodProps';

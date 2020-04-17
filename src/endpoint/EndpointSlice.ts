@@ -7,10 +7,22 @@ import {
   defaultEndpointState,
   reducerRegistry,
   EndpointMethodMap,
+  SlimRequestResponse,
 } from "./";
 
 // Enable the Immer patches feature
 enablePatches();
+
+export interface IEndpointRequest {
+  id: string;
+  params: any;
+  request: SlimRequestResponse;
+  isFetching: boolean;
+  isFetched: boolean;
+  isError: boolean;
+}
+
+export type StoredEndpointRequest = Partial<IEndpointRequest>;
 
 export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly name: string;

@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { SortEnd } from 'react-sortable-hoc';
+import { useSnackbar } from 'notistack';
 
 import Layout from "./components/Layout";
 import AddTodoForm from "./components/AddTodoForm";
@@ -11,6 +12,7 @@ import { ApplicationState } from './store';
 import { ITodoItem } from './models';
 
 // TODO: Use the todoAdapter selectors to query the items
+// TODO: Add a loading spinner
 
 function App() {
   const getAllTodos = useEndpointMethod(TodoSlice.Actions.GetAll);
@@ -25,10 +27,7 @@ function App() {
   }, [deleteTodo]);
 
   const onCheckedItem = useCallback((item: ITodoItem) => {
-    updateTodo({
-      ...item,
-      completed: !item.completed
-    });
+    updateTodo({ ...item, completed: !item.completed });
   }, [updateTodo]);
 
   const onItemSorted = useCallback((result: SortEnd, items: ITodoItem[]) => {

@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 
 import { EndpointMethod } from './';
 
-type ExecuteActionCreatorHook<RequestPayload, MethodProps, Result> = (...args: [RequestPayload, MethodProps]) => Result;
+type ExecuteActionCreatorHook<RequestPayload, MethodProps, Result> = (params: RequestPayload, props: MethodProps) => Result;
 
 export const useEndpointMethod = <RequestPayload, ResponsePayload, MethodProps>(method: EndpointMethod<RequestPayload, ResponsePayload, MethodProps>) => {
   const dispatch = useDispatch();

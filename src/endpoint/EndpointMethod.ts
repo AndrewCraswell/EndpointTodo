@@ -11,7 +11,9 @@ export interface IEndpointMethod {
   Orchestrate(sliceName: string, baseUrl: string, methodName?: string): void;
 }
 
-export class EndpointMethod<RequestPayload = void, ResponsePayload = void, MethodProps = IEndpointMethodProps | void> implements IEndpointMethod {
+export type EndpointMethodProps<Props> = Props & IEndpointMethodProps | void;
+
+export class EndpointMethod<RequestPayload = void, ResponsePayload = void, MethodProps = void | IEndpointMethodProps> implements IEndpointMethod {
   private _sliceName: string | undefined;
   private _actions: AsyncMethodActions<RequestPayload, ResponsePayload, MethodProps>;
   private _name: string | undefined;

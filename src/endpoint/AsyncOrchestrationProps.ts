@@ -1,4 +1,4 @@
-import { IRequestResponse } from ".";
+import { SlimRequestResponse } from ".";
 
 export interface IEndpointMethodProps {
   id?: string,
@@ -8,5 +8,5 @@ export interface IEndpointMethodProps {
 export interface IAsyncOrchestrationProps<RequestPayload = void, MethodProps = void> {
   params: RequestPayload,
   props: MethodProps & IEndpointMethodProps,
-  response: Omit<IRequestResponse, 'data'|'config'|'request'>
+  response: SlimRequestResponse
 }
