@@ -1,10 +1,22 @@
 import axios from "axios";
+import { setupCache } from 'axios-cache-adapter'
+
 
 import { IRequestResponse, EndpointApiFunctionConfig } from "../../../endpoint";
 import { ITodoItem } from "../../../models";
 
+
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
-// TODO: Why is the payload possibly undefined?
+const cache = setupCache({
+  maxAge: 15 * 60 * 1000,
+  exclude: { query: false }
+})
+
+// Create `http` instance passing the newly created `cache.adapter`
+const http = axios.create({
+  adapter: cache.adapter
+})
+
 
 export class TodoApi {
   public static getTodos = (
@@ -12,7 +24,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem[]>> => {
     const { url, method } = config;
 
-    return axios.request({
+    return http.request({
       url,
       method
     });
@@ -23,7 +35,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { method, payload } = config;
 
-    return axios.request({
+    return http.request({
       url: `${payload}`,
       method
     });
@@ -34,7 +46,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { url, method, payload } = config;
 
-    return axios.request({
+    return http.request({
       url,
       method,
       data: payload,
@@ -46,7 +58,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { method, payload } = config;
 
-    return axios.request({
+    return http.request({
       url: `${payload?.url}`,
       method
     });
@@ -57,7 +69,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { method, payload } = config;
 
-    return axios.request({
+    return http.request({
       url: `${payload?.url}`,
       method,
       data: payload
