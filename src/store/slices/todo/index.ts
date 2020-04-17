@@ -1,64 +1,40 @@
 import { createReducer } from "@reduxjs/toolkit";
-import { normalize } from 'normalizr';
 
-import { EndpointSlice, EndpointMethod, Orchestrators, IEndpointMethodProps } from "../../../endpoint";
-import { TodoApi } from "./api";
-import { ITodoItem, TodoMap } from "../../../models";
-import { todoListSchema } from './schema';
-import { getSortedTodoIds, normalizeSingleTodo, addTodoToStore } from '../../../utils';
+import { EndpointSlice } from "../../../endpoint";
+import { todoAdapter } from './schema';
+import { TodoMethods } from "./actions";
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
 
-interface ITodoSliceState {
-  items: TodoMap;
-  ids: string[];
-}
-
-const initialState: ITodoSliceState = {
-  items: {},
-  ids: []
-}
-
-export const TodoMethods =   {
-  // TODO: Infer RequestPayload and ResponsePayload from Api method itself?
-  GetAll: new EndpointMethod<void, ITodoItem[]>('GET', TodoApi.getTodos, Orchestrators.takeLatest),
-  GetById: new EndpointMethod<string, ITodoItem>('GET', TodoApi.getTodoById, Orchestrators.takeEvery),
-  Add: new EndpointMethod<ITodoItem, ITodoItem>('POST', TodoApi.addTodo, Orchestrators.takeEvery),
-  Delete: new EndpointMethod<ITodoItem, ITodoItem>('DELETE', TodoApi.deleteTodo, Orchestrators.takeEvery),
-  Update: new EndpointMethod<ITodoItem, ITodoItem>('PATCH', TodoApi.updateTodo, Orchestrators.takeEvery),
-}
+// TODO: Use the Redux Toolkit createSlice() method internally
 
 export const TodoSlice = new EndpointSlice(
   'Todo',
   'https://todo-backend-typescript.herokuapp.com/',
-  initialState,
+  todoAdapter.getInitialState(),
   TodoMethods
 )
 
-const { Add, Delete, GetAll, GetById, Update } = TodoMethods;
+const { Add, Delete, GetAll, GetById, Update } = TodoSlice.Actions;
 export const todoReducer = createReducer(TodoSlice.initialState, {
-  [GetAll.Success.type]: (state, action: ReturnType<typeof GetAll.Success>) => {
-    const { entities } = normalize(action.payload, todoListSchema);
-    const items = entities.todos as TodoMap;
-
-    state.items = items;
-    state.ids = getSortedTodoIds(items);
-  },
-  [GetById.Success.type]: addTodoToStore,
-  [Add.Execute.type]: addTodoToStore,
+  [GetAll.Success.type]: todoAdapter.addMany,
+  [GetById.Success.type]: todoAdapter.addOne,
+  [Add.Execute.type]: todoAdapter.addOne,
   [Add.Success.type]: (state, action: ReturnType<typeof Add.Success>) => {
-    const todo = normalizeSingleTodo(action.payload);
-    delete state.items[action.meta.params.id];
-    state.items[todo.id] = todo;
-    state.ids = getSortedTodoIds(state.items);
+    todoAdapter.removeOne(state, action.meta.params.url);
+    todoAdapter.addOne(state, action.payload);
   },
   [Delete.Execute.type]: (state, action: ReturnType<typeof Delete.Execute>) => {
-    const todo = normalizeSingleTodo(action.payload);
-    delete state.items[todo.id];
-    state.ids = getSortedTodoIds(state.items);
+    todoAdapter.removeOne(state, action.payload.url);
   },
-  [Update.Execute.type]: addTodoToStore,
+  [Update.Execute.type]: (state, action: ReturnType<typeof Update.Execute>) => {
+    todoAdapter.updateOne(state, {
+      id: action.payload.url,
+      changes: action.payload
+    });
+    //todoAdapter.addOne(state, action.payload);
+  },
 })
 
 TodoSlice.registerReducer(todoReducer);

@@ -12,10 +12,11 @@ import {
 // Enable the Immer patches feature
 enablePatches();
 
-export class EndpointSlice<State> {
+export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly name: string;
   public readonly baseUrl: string;
   public readonly initialState: State & IEndpointState;
+  public readonly Actions: EndpointMethods;
 
   private _reducer: Reducer<State & IEndpointState> | undefined;
   private _reductor: Reducer<IEndpointState & State, AnyAction>;
@@ -25,14 +26,10 @@ export class EndpointSlice<State> {
     return this._reducer;
   }
 
-  constructor(
-    name: string,
-    baseUrl: string,
-    initialState: State,
-    methods: EndpointMethodMap
-  ) {
+  constructor(name: string, baseUrl: string, initialState: State, methods: EndpointMethods) {
     this.name = name;
     this.baseUrl = baseUrl;
+    this.Actions = methods;
 
     this.initialState = {
       ...defaultEndpointState,

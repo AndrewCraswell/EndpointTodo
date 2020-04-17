@@ -1,16 +1,8 @@
-import { schema } from 'normalizr';
-
 import { ITodoItem } from '../../../models';
-import { getTodoId } from '../../../utils';
+import { createEntityAdapter } from '@reduxjs/toolkit';
 
-const todoSchema = new schema.Entity('todos', {}, {
-  idAttribute: (todo: ITodoItem) => getTodoId(todo),
-  processStrategy: (todo: ITodoItem) => {
-    return {
-      ...todo,
-      id: getTodoId(todo)
-    }
-  }
-});
-
-export const todoListSchema = [todoSchema];
+// Data Adapters
+export const todoAdapter = createEntityAdapter<ITodoItem>({
+  selectId: todo => todo.url,
+  sortComparer: (a, b) => a.order - b.order,
+})

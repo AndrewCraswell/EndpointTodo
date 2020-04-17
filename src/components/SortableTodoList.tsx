@@ -19,7 +19,7 @@ export const SortableTodoList = SortableContainer((props: ISortableTodoListProps
   return (
     <List>
       {items.map((todo, idx) => (
-        <SortableTodo key={`todo-${todo.id}`} index={idx} todos={items} value={todo} onItemCheck={onItemCheck} onItemRemove={onItemRemove} />
+        <SortableTodo key={`todo-${todo.url}`} index={idx} todos={items} value={todo} onItemCheck={onItemCheck} onItemRemove={onItemRemove} />
       ))}
     </List>
   );
