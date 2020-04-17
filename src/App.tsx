@@ -5,18 +5,20 @@ import { SortEnd } from 'react-sortable-hoc';
 import Layout from "./components/Layout";
 import AddTodoForm from "./components/AddTodoForm";
 import TodoList from "./components/TodoList";
-import { TodoMethods } from './store/slices/todo';
+import { TodoSlice } from './store/slices/todo';
 import { useEndpointMethod } from './endpoint';
 import { ApplicationState } from './store';
 import { ITodoItem } from './models';
 
-function App() {
-  const getAllTodos = useEndpointMethod(TodoMethods.GetAll);
-  const addTodo = useEndpointMethod(TodoMethods.Add);
-  const deleteTodo = useEndpointMethod(TodoMethods.Delete);
-  const updateTodo = useEndpointMethod(TodoMethods.Update);
+// TODO: Use the todoAdapter selectors to query the items
 
-  const todos = useSelector((state: ApplicationState) => state.Todo.ids.map(id => state.Todo.items[id]), shallowEqual);
+function App() {
+  const getAllTodos = useEndpointMethod(TodoSlice.Actions.GetAll);
+  const addTodo = useEndpointMethod(TodoSlice.Actions.Add);
+  const deleteTodo = useEndpointMethod(TodoSlice.Actions.Delete);
+  const updateTodo = useEndpointMethod(TodoSlice.Actions.Update);
+
+  const todos = useSelector((state: ApplicationState) => state.Todo.ids.map(id => state.Todo.entities[id]), shallowEqual);
 
   const onDeleteItem = useCallback((item: ITodoItem) => {
     deleteTodo(item);
@@ -36,13 +38,7 @@ function App() {
     const sortable = [...items];
     moveArray(sortable, oldIndex, newIndex);
 
-    let startIndex = newIndex, endIndex = oldIndex;
-    if (newIndex > oldIndex) {
-      startIndex = oldIndex;
-      endIndex = newIndex;
-    }
-
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = newIndex; i <= oldIndex; i++) {
       sortable[i] = { ...sortable[i], order: i + 1 };
       updateTodo(sortable[i]);
     }
@@ -56,7 +52,7 @@ function App() {
     <Layout>
       <AddTodoForm addTodoItem={addTodo} />
       <TodoList
-        items={todos}
+        items={todos as ITodoItem[]}
         onItemCheck={onCheckedItem}
         onItemRemove={onDeleteItem}
         onItemSorted={onItemSorted}

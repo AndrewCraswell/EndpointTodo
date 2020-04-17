@@ -5,6 +5,8 @@ import { AnyAction } from 'redux';
 import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationProps } from '.';
 import { sagaRegistry } from './SagaRegistry';
 
+// TODO: Implement saga chaining, or action chaining
+
 class SagaOrchestrator implements AsyncOrchestrator {
   /** The effect creator to apply when watching for the endpoint actions to occur */
   protected effect: EffectCreator;

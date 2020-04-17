@@ -22,19 +22,18 @@ const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
   const nextOrderNum = useSelector((state: ApplicationState) => {
     const lastId = state.Todo.ids.slice(-1).pop();
     if (lastId) {
-      return state.Todo.items[lastId].order + 1;
+      return state.Todo.entities[lastId]!.order + 1;
     }
     return 1;
   });
 
   const onSubmit = (data: TodoForm) => {
-    const id = nanoid();
     addTodoItem({
-      id,
+      url: nanoid(),
       title: data.title,
       completed: false,
       order: nextOrderNum
-    } as ITodoItem);
+    });
 
     reset();
   }

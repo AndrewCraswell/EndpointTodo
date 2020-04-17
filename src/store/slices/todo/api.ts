@@ -1,9 +1,11 @@
 import axios from "axios";
 
-import { IRequestResponse, EndpointApiFunctionConfig, IEndpointMethodProps } from "../../../endpoint";
+import { IRequestResponse, EndpointApiFunctionConfig } from "../../../endpoint";
 import { ITodoItem } from "../../../models";
 
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
+// TODO: Why is the payload possibly undefined?
+
 export class TodoApi {
   public static getTodos = (
     config: EndpointApiFunctionConfig
@@ -19,10 +21,10 @@ export class TodoApi {
   public static getTodoById = (
     config: EndpointApiFunctionConfig<string>
   ): Promise<IRequestResponse<ITodoItem>> => {
-    const { url, method, payload } = config;
+    const { method, payload } = config;
 
     return axios.request({
-      url: `${url}${payload}`,
+      url: `${payload}`,
       method
     });
   };
@@ -42,10 +44,10 @@ export class TodoApi {
   public static deleteTodo = (
     config: EndpointApiFunctionConfig<ITodoItem>
   ): Promise<IRequestResponse<ITodoItem>> => {
-    const { url, method, payload } = config;
+    const { method, payload } = config;
 
     return axios.request({
-      url: `${url}${payload?.id}`,
+      url: `${payload?.url}`,
       method
     });
   };
@@ -53,10 +55,10 @@ export class TodoApi {
   public static updateTodo = (
     config: EndpointApiFunctionConfig<ITodoItem>
   ): Promise<IRequestResponse<ITodoItem>> => {
-    const { url, method, payload } = config;
+    const { method, payload } = config;
 
     return axios.request({
-      url: `${url}${payload?.id}`,
+      url: `${payload?.url}`,
       method,
       data: payload
     });
