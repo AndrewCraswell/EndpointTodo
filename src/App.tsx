@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { SortEnd } from 'react-sortable-hoc';
-import { useSnackbar } from 'notistack';
 
 import Layout from "./components/Layout";
 import AddTodoForm from "./components/AddTodoForm";

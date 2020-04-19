@@ -17,13 +17,13 @@ const http = axios.create({
 
 export class TodoApi {
   public static getAllTodos = (
-    config: EndpointApiFunctionConfig<void, OptionalMethodProps<ICacheProps>>
+    config: EndpointApiFunctionConfig<void, OptionalMethodProps<ICacheProps>>,
   ): Promise<IRequestResponse<ITodoItem[]>> => {
-    const { url, method } = config;
+    const { url, method, props } = config;
 
     let disableCache = false;
-    if (config.props) {
-      disableCache = (config.props as any)?.disableCache || false
+    if (props) {
+      disableCache = props.disableCache ?? false;
     }
 
     return http.request({

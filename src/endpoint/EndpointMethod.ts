@@ -1,7 +1,7 @@
 import { createAction, nanoid } from "@reduxjs/toolkit";
 
-import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationProps, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
-import { IEndpointMethodProps } from "./AsyncOrchestrationProps";
+import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationMeta, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
+import { IEndpointMethodProps } from "./AsyncOrchestrationMeta";
 
 export type EndpointMethodMap = {
   [name: string]: IEndpointMethod
@@ -62,7 +62,7 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
       this.asyncOrchestrator.orchestrate({
         name: `${sliceName}/${methodName}`,
         actions: this._actions,
-        apiFunction: (payload: RequestPayload, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>): ReturnType<typeof apiFunction> => {
+        apiFunction: (payload: RequestPayload, props: MethodProps): ReturnType<typeof apiFunction> => {
           return apiFunction({
             url: baseUrl,
             method: this.method,
@@ -81,10 +81,10 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
       (params: RequestPayload, props: MethodProps & IEndpointMethodProps) => ({ payload: params, meta: { ...props, id: props?.id || nanoid() } }));
 
     this.Success = createAction(this.Types.Success,
-      (params: ResponsePayload, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+      (params: ResponsePayload, props: IAsyncOrchestrationMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
     this.Failure = createAction(this.Types.Failure,
-      (params: Error, props: IAsyncOrchestrationProps<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+      (params: Error, props: IAsyncOrchestrationMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
     this._actions = {
       Execute: this.Execute,

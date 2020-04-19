@@ -1,27 +1,19 @@
 import React, { memo, useCallback } from "react";
 import { AppBar, Toolbar, Typography, Paper, FormControlLabel, Switch, IconButton } from "@material-ui/core";
 import SyncIcon from '@material-ui/icons/Sync';
-import { useSnackbar } from "notistack";
 
 import { useEndpointMethod } from "../endpoint";
 import { TodoSlice } from "../store/slices/todo";
 import { useCache } from './UseCacheProvider';
 
 const Layout = memo(props => {
-  const { enqueueSnackbar } = useSnackbar();
   const { isCacheEnabled, setCacheEnabled } = useCache();
   const getAllTodos = useEndpointMethod(TodoSlice.Actions.GetAll);
 
   const onSyncClick = useCallback(() => {
     getAllTodos(undefined, { disableCache: !isCacheEnabled });
 
-    if (isCacheEnabled) {
-      enqueueSnackbar('Okay, I got todo tasks from the cache', { variant: 'info' });
-    } else {
-      enqueueSnackbar('I fetched the latest todo tasks from the server!', { variant: 'info' });
-    }
-
-  }, [getAllTodos, enqueueSnackbar, isCacheEnabled]);
+  }, [getAllTodos, isCacheEnabled]);
 
   const onUseCacheToggled = useCallback((event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
     setCacheEnabled(checked);
@@ -40,8 +32,7 @@ const Layout = memo(props => {
           </IconButton>
 
           <FormControlLabel
-            value="isCache"
-            control={<Switch color="secondary" onChange={onUseCacheToggled} />}
+            control={<Switch color="secondary" defaultChecked={isCacheEnabled} onChange={onUseCacheToggled} />}
             label="Use cache?"
             labelPlacement="end"
           />

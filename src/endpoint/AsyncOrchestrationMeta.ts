@@ -5,8 +5,8 @@ export interface IEndpointMethodProps {
   disableRollback?: boolean
 }
 
-export interface IAsyncOrchestrationProps<RequestPayload = void, MethodProps = void> {
+export interface IAsyncOrchestrationMeta<RequestPayload = void, MethodProps = void> {
   params: RequestPayload,
-  props: MethodProps & IEndpointMethodProps,
+  props: MethodProps,
   response: SlimRequestResponse
 }

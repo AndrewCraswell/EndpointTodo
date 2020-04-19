@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { SnackbarProvider } from 'notistack';
 
 import App from './App';
 import { store } from './store';
@@ -11,11 +10,9 @@ import './index.scss';
 
 ReactDOM.render(
   <Provider store={store}>
-    <SnackbarProvider maxSnack={3} dense>
-      <UseCacheProvider>
-        <App />
-      </UseCacheProvider>
-    </SnackbarProvider>
+    <UseCacheProvider>
+      <App />
+    </UseCacheProvider>
   </Provider>,
   document.getElementById('root')
 );

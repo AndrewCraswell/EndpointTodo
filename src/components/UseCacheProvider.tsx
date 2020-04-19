@@ -6,7 +6,7 @@ interface ICacheContext {
 }
 
 const cacheContextDefault: ICacheContext = {
-  isCacheEnabled: false,
+  isCacheEnabled: true,
   setCacheEnabled: () => { }
 }
 
