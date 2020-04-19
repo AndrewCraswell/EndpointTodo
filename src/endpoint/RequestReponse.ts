@@ -7,3 +7,5 @@ export interface IRequestResponse<T = any> {
   statusText: string;
   error: string;
 }
+
+export type SlimRequestResponse = Omit<IRequestResponse, 'data'|'config'|'request'>;

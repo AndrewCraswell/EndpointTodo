@@ -4,15 +4,16 @@ import { Provider } from 'react-redux';
 
 import App from './App';
 import { store } from './store';
+import { UseCacheProvider } from './components/UseCacheProvider';
 
 import './index.scss';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <Provider store={store}>
+  <Provider store={store}>
+    <UseCacheProvider>
       <App />
-    </Provider>
-  </React.StrictMode>,
+    </UseCacheProvider>
+  </Provider>,
   document.getElementById('root')
 );
 

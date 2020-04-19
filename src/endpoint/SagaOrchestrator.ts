@@ -2,7 +2,7 @@
 import { call, put, takeLeading, takeEvery, takeLatest } from 'redux-saga/effects';
 import { AnyAction } from 'redux';
 
-import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationProps } from '.';
+import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationMeta } from '.';
 import { sagaRegistry } from './SagaRegistry';
 
 // TODO: Implement saga chaining, or action chaining
@@ -27,33 +27,36 @@ class SagaOrchestrator implements AsyncOrchestrator {
       }
 
       // Default implementation of the saga to handle the Execution action workflow
+      // TODO: Fix the typings on AnyAction
       function *asyncSaga(action: AnyAction): Generator {
-        const props = {
-          params: action.payload as RequestPayload,
-          ...action.meta
-        } as MethodProps & IAsyncOrchestrationProps<RequestPayload, MethodProps>;
+        const params: RequestPayload = action.payload;
+        const props: MethodProps = action.meta;
+        const resultMeta = {
+          params,
+          props
+        } as IAsyncOrchestrationMeta<RequestPayload, MethodProps>;
 
         try {
-          const yielded = yield call(apiFunction, action.payload, props);
+          const yielded = yield call(apiFunction, params, props);
 
           // We destructure away some items we don't want stored in Redux to reduce verbosity
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { config = {}, data, request, ...propsResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
-          props.response = propsResponse;
+          const { config = {}, data, request, ...slimResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
+          resultMeta.response = slimResponse;
 
-          const successAction = actions.Success(data, props);
+          const successAction = actions.Success(data, resultMeta);
           yield put(successAction);
           //yield* this.onSuccessExecuted(successAction, actionResult);
         } catch (err) {
           if (err.request) {
             // The request was made and the server responded with a
             // status code that falls out of the range of 2xx
-            const errorAction = actions.Failure(err, props);
+            const errorAction = actions.Failure(err, resultMeta);
             yield put(errorAction);
             //yield* this.onErrorExecuted(errorAction, err.stack!, err.response);
           } else if (err instanceof Error) {
             // Something happened in setting up the request and triggered an Error
-            const errorAction = actions.Failure(err, props);
+            const errorAction = actions.Failure(err, resultMeta);
             yield put(errorAction);
             //yield* this.onErrorExecuted(errorAction, err.message, actionResult);
           }

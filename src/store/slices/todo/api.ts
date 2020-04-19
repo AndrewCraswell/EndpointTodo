@@ -1,10 +1,8 @@
 import axios from "axios";
 import { setupCache } from 'axios-cache-adapter'
 
-
-import { IRequestResponse, EndpointApiFunctionConfig } from "../../../endpoint";
-import { ITodoItem } from "../../../models";
-
+import { IRequestResponse, EndpointApiFunctionConfig, OptionalMethodProps } from "../../../endpoint";
+import { ITodoItem, ICacheProps } from "../../../models";
 
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
 const cache = setupCache({
@@ -12,21 +10,28 @@ const cache = setupCache({
   exclude: { query: false }
 })
 
-// Create `http` instance passing the newly created `cache.adapter`
 const http = axios.create({
   adapter: cache.adapter
 })
 
 
 export class TodoApi {
-  public static getTodos = (
-    config: EndpointApiFunctionConfig
+  public static getAllTodos = (
+    config: EndpointApiFunctionConfig<void, OptionalMethodProps<ICacheProps>>,
   ): Promise<IRequestResponse<ITodoItem[]>> => {
-    const { url, method } = config;
+    const { url, method, props } = config;
+
+    let disableCache = false;
+    if (props) {
+      disableCache = props.disableCache ?? false;
+    }
 
     return http.request({
       url,
-      method
+      method,
+      cache: {
+        ignoreCache: disableCache
+      }
     });
   };
 
