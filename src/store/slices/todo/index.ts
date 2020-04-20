@@ -3,6 +3,7 @@ import { createReducer } from "@reduxjs/toolkit";
 import { EndpointSlice } from "../../../endpoint";
 import { todoAdapter } from './schema';
 import { TodoMethods } from "./actions";
+import { cache } from './api';
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
@@ -26,6 +27,8 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     todoAdapter.addOne(state, action.payload);
   },
   [Delete.Execute.type]: (state, action: ReturnType<typeof Delete.Execute>) => {
+
+    //cache.store.removeItem('');
     todoAdapter.removeOne(state, action.payload.url);
   },
   [Update.Execute.type]: (state, action: ReturnType<typeof Update.Execute>) => {

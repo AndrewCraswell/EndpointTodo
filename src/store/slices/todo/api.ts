@@ -3,11 +3,23 @@ import { setupCache } from 'axios-cache-adapter'
 
 import { IRequestResponse, EndpointApiFunctionConfig, OptionalMethodProps } from "../../../endpoint";
 import { ITodoItem, ICacheProps } from "../../../models";
+import { TodoSlice } from './';
 
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
-const cache = setupCache({
+export const cache = setupCache({
   maxAge: 15 * 60 * 1000,
-  exclude: { query: false }
+  exclude: { query: false },
+  invalidate: async (config, request) => {
+    const method = request.method;
+
+    if (method && method.toLowerCase() !== 'get') {
+      if (config) {
+        const store = (config.store as any).store;
+        delete store[TodoSlice.baseUrl];
+      }
+
+    }
+  }
 })
 
 const http = axios.create({
