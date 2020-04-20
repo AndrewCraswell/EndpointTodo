@@ -32,7 +32,7 @@ const Layout = memo(props => {
           </IconButton>
 
           <FormControlLabel
-            control={<Switch color="secondary" defaultChecked={isCacheEnabled} onChange={onUseCacheToggled} />}
+            control={<Switch color="secondary" checked={isCacheEnabled} onChange={onUseCacheToggled} />}
             label="Use cache?"
             labelPlacement="end"
           />
