@@ -1,11 +1,16 @@
-import { SlimRequestResponse } from ".";
+import { SlimRequestResponse, RequestMethod } from ".";
 
 export interface IEndpointMethodProps {
   id?: string,
-  disableRollback?: boolean
+  disableRollback?: boolean,
+  method?: RequestMethod
 }
 
-export interface IAsyncOrchestrationMeta<RequestPayload = void, MethodProps = void> {
+export interface IAsyncOrchestrationRequestMeta<MethodProps = void> {
+  props: MethodProps
+}
+
+export interface IAsyncOrchestrationResultMeta<RequestPayload = void, MethodProps = void> {
   params: RequestPayload,
   props: MethodProps,
   response: SlimRequestResponse

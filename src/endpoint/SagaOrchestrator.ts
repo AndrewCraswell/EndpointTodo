@@ -2,7 +2,7 @@
 import { call, put, takeLeading, takeEvery, takeLatest } from 'redux-saga/effects';
 import { AnyAction } from 'redux';
 
-import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationMeta } from '.';
+import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationResultMeta } from '.';
 import { sagaRegistry } from './SagaRegistry';
 
 // TODO: Implement saga chaining, or action chaining
@@ -30,11 +30,11 @@ class SagaOrchestrator implements AsyncOrchestrator {
       // TODO: Fix the typings on AnyAction
       function *asyncSaga(action: AnyAction): Generator {
         const params: RequestPayload = action.payload;
-        const props: MethodProps = action.meta;
+        const props: MethodProps = action.meta.props;
         const resultMeta = {
           params,
           props
-        } as IAsyncOrchestrationMeta<RequestPayload, MethodProps>;
+        } as IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>;
 
         try {
           const yielded = yield call(apiFunction, params, props);
@@ -63,7 +63,7 @@ class SagaOrchestrator implements AsyncOrchestrator {
         }
       }
 
-      // Register the saga
+      // Register the saga with the middleware so it executes
       sagaRegistry.registerAnthology(name, [rootSaga]);
   }
 }

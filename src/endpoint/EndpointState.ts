@@ -1,13 +1,21 @@
-export interface IEndpointState {
+import { EntityState } from '@reduxjs/toolkit';
+
+import { SlimRequestResponse, RequestMethod } from './';
+
+export interface IRequestRecord {
+  id: string;
   isFetching: boolean;
   isFetched: boolean;
   isError: boolean;
-  requests: [];
+  params: any;
+  method: RequestMethod;
+  executedAt: Date;
+  completedAt?: Date;
+  response?: SlimRequestResponse;
 }
 
-export const defaultEndpointState: IEndpointState = {
-  isFetching: false,
-  isFetched: false,
-  isError: false,
-  requests: []
+export interface IEndpointState {
+  isFetching: boolean;
+  requests: EntityState<IRequestRecord>;
 }
+

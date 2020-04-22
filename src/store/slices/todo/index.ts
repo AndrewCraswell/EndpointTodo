@@ -17,7 +17,7 @@ export const TodoSlice = new EndpointSlice(
   TodoMethods
 )
 
-const { Add, Delete, GetAll, GetById, Update } = TodoSlice.Actions;
+const { Add, Delete, GetAll, GetById, Update } = TodoSlice.actions;
 export const todoReducer = createReducer(TodoSlice.initialState, {
   [GetAll.Success.type]: todoAdapter.addMany,
   [GetById.Success.type]: todoAdapter.addOne,
@@ -27,8 +27,6 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     todoAdapter.addOne(state, action.payload);
   },
   [Delete.Execute.type]: (state, action: ReturnType<typeof Delete.Execute>) => {
-
-    //cache.store.removeItem('');
     todoAdapter.removeOne(state, action.payload.url);
   },
   [Update.Execute.type]: (state, action: ReturnType<typeof Update.Execute>) => {

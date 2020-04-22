@@ -14,10 +14,10 @@ import { ITodoItem } from './models';
 // TODO: Add a loading spinner
 
 function App() {
-  const getAllTodos = useEndpointMethod(TodoSlice.Actions.GetAll);
-  const addTodo = useEndpointMethod(TodoSlice.Actions.Add);
-  const deleteTodo = useEndpointMethod(TodoSlice.Actions.Delete);
-  const updateTodo = useEndpointMethod(TodoSlice.Actions.Update);
+  const getAllTodos = useEndpointMethod(TodoSlice.actions.GetAll);
+  const addTodo = useEndpointMethod(TodoSlice.actions.Add);
+  const deleteTodo = useEndpointMethod(TodoSlice.actions.Delete);
+  const updateTodo = useEndpointMethod(TodoSlice.actions.Update);
 
   const todos = useSelector((state: ApplicationState) => state.Todo.ids.map(id => state.Todo.entities[id]), shallowEqual);
 

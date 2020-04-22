@@ -1,6 +1,6 @@
 import { createAction, nanoid } from "@reduxjs/toolkit";
 
-import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationMeta, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
+import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationResultMeta, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
 import { IEndpointMethodProps } from "./AsyncOrchestrationMeta";
 
 export type EndpointMethodMap = {
@@ -78,13 +78,22 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     this.Types = this.GetActionTypes();
 
     this.Execute = createAction(this.Types.Execute,
-      (params: RequestPayload, props: MethodProps & IEndpointMethodProps) => ({ payload: params, meta: { ...props, id: props?.id || nanoid() } }));
+      (params: RequestPayload, props: MethodProps & IEndpointMethodProps) => ({
+        payload: params,
+        meta: {
+          props: {
+            ...props,
+            id: props?.id || nanoid(),
+            method: this.method
+          }
+        }
+      }));
 
     this.Success = createAction(this.Types.Success,
-      (params: ResponsePayload, props: IAsyncOrchestrationMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+      (params: ResponsePayload, props: IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
     this.Failure = createAction(this.Types.Failure,
-      (params: Error, props: IAsyncOrchestrationMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+      (params: Error, props: IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
     this._actions = {
       Execute: this.Execute,

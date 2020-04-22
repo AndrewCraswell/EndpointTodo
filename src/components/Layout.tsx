@@ -8,7 +8,7 @@ import { useCache } from './UseCacheProvider';
 
 const Layout = memo(props => {
   const { isCacheEnabled, setCacheEnabled } = useCache();
-  const getAllTodos = useEndpointMethod(TodoSlice.Actions.GetAll);
+  const getAllTodos = useEndpointMethod(TodoSlice.actions.GetAll);
 
   const onSyncClick = useCallback(() => {
     getAllTodos(undefined, { disableCache: !isCacheEnabled });

@@ -1,35 +1,31 @@
-/* tslint:disable */
-import { Reducer, AnyAction } from "@reduxjs/toolkit";
+import { Reducer, AnyAction, createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
 import { produce, enablePatches, Patch, applyPatches } from "immer";
 
 import {
   IEndpointState,
-  defaultEndpointState,
   reducerRegistry,
   EndpointMethodMap,
-  SlimRequestResponse,
+  IRequestRecord
 } from "./";
+import { IEndpointMethodProps, IAsyncOrchestrationRequestMeta, IAsyncOrchestrationResultMeta } from "./AsyncOrchestrationMeta";
 
 // Enable the Immer patches feature
 enablePatches();
-
-export interface IEndpointRequest {
-  id: string;
-  params: any;
-  request: SlimRequestResponse;
-  isFetching: boolean;
-  isFetched: boolean;
-  isError: boolean;
-}
-
-export type StoredEndpointRequest = Partial<IEndpointRequest>;
 
 export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly name: string;
   public readonly baseUrl: string;
   public readonly initialState: State & IEndpointState;
-  public readonly Actions: EndpointMethods;
+  public readonly actions: EndpointMethods;
+  public readonly requests = createEntityAdapter<IRequestRecord>({
+    sortComparer: (a, b) => a.executedAt && b.executedAt ? a.executedAt.getTime() - b.executedAt.getTime() : 0,
+  });
+  public readonly requestSelectors = this.requests.getSelectors();
 
+  private _defaultInitialState: IEndpointState = {
+    isFetching: false,
+    requests: this.requests.getInitialState()
+  }
   private _reducer: Reducer<State & IEndpointState> | undefined;
   private _patches: Map<string, Patch[]> = new Map<string, Patch[]>();
 
@@ -40,10 +36,10 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   constructor(name: string, baseUrl: string, initialState: State, methods: EndpointMethods) {
     this.name = name;
     this.baseUrl = baseUrl;
-    this.Actions = methods;
+    this.actions = methods;
 
     this.initialState = {
-      ...defaultEndpointState,
+      ...this._defaultInitialState,
       ...initialState,
     } as State & IEndpointState;
 
@@ -89,25 +85,62 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
       const type = actionType as string;
       if (type.startsWith(`@Restux/${this.name}`)) {
         return produce(baseState, (state) => {
+          const { selectAll } = this.requestSelectors;
           const asyncType = type.split("/").pop();
-          const id = action.meta.id;
+          const id = action.meta.props.id;
+
           switch (asyncType) {
-            case "Execute":
+            case "Execute": {
+              const { meta, payload } = action as PayloadAction<any, string, IAsyncOrchestrationRequestMeta<Required<IEndpointMethodProps>>>;
+
               state.isFetching = true;
-              state.isError = false;
+              this.requests.addOne(state.requests, {
+                executedAt: new Date(),
+                id,
+                isError: false,
+                isFetched: false,
+                isFetching: true,
+                params: payload,
+                method: meta.props.method
+              });
               break;
-            case "Success":
-              state.isFetching = false;
-              state.isFetched = true;
-              state.isError = false;
+            }
+            case "Success": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<Required<IEndpointMethodProps>>>;
+
+              this.requests.updateOne(state.requests, {
+                id,
+                changes: {
+                  completedAt: new Date(),
+                  isFetched: true,
+                  isFetching: false,
+                  response: meta.response
+                }
+              });
+
+              // Determine if any requests are still in progress
+              state.isFetching = !!selectAll(state.requests).filter((r) => r && r.isFetching).length;
 
               // Remove any patches being tracked for rollback
               this._patches.delete(id);
               break;
-            case "Failure":
-              state.isFetching = false;
-              state.isFetched = true;
-              state.isError = true;
+            }
+            case "Failure": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<Required<IEndpointMethodProps>>>;
+
+              this.requests.updateOne(state.requests, {
+                id,
+                changes: {
+                  completedAt: new Date(),
+                  isFetched: false,
+                  isFetching: false,
+                  isError: true,
+                  response: meta.response
+                }
+              });
+
+              // Determine if any requests are still in progress
+              state.isFetching = !!selectAll(state.requests).filter((r) => r && r.isFetching).length;
 
               // Rollback any changes that were made optimistically
               if (this._patches.has(id)) {
@@ -115,6 +148,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
                 this._patches.delete(id);
               }
               break;
+            }
           }
         });
       }
