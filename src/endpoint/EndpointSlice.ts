@@ -87,16 +87,17 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
         return produce(baseState, (state) => {
           const { selectAll } = this.requestSelectors;
           const asyncType = type.split("/").pop();
-          const id = action.meta.props.id;
 
           switch (asyncType) {
             case "Execute": {
               const { meta, payload } = action as PayloadAction<any, string, IAsyncOrchestrationRequestMeta<Required<IEndpointMethodProps>>>;
+              const id = action.meta.props.id;
 
               state.isFetching = true;
               this.requests.addOne(state.requests, {
                 executedAt: new Date(),
                 id,
+                type,
                 isError: false,
                 isFetched: false,
                 isFetching: true,
@@ -107,6 +108,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
             }
             case "Success": {
               const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<Required<IEndpointMethodProps>>>;
+              const id = action.meta.props.id;
 
               this.requests.updateOne(state.requests, {
                 id,
@@ -127,6 +129,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
             }
             case "Failure": {
               const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<Required<IEndpointMethodProps>>>;
+              const id = action.meta.props.id;
 
               this.requests.updateOne(state.requests, {
                 id,
@@ -147,6 +150,10 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
                 applyPatches(state, this._patches.get(id)!);
                 this._patches.delete(id);
               }
+              break;
+            }
+            case "ClearRequests": {
+              this.requests.removeMany(state.requests, action.payload);
               break;
             }
           }

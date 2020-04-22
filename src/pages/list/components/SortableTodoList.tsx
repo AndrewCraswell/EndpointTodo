@@ -1,7 +1,7 @@
 import React from 'react';
 import { SortableContainer } from 'react-sortable-hoc';
 
-import { ITodoItem } from '../models';
+import { ITodoItem } from '../../../models';
 import { List } from '@material-ui/core';
 import SortableTodo from './SortableTodo';
 

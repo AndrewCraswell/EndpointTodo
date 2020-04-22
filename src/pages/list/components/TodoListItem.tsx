@@ -8,7 +8,7 @@ import {
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
 
-import { ITodoItem } from '../models';
+import { ITodoItem } from '../../../models';
 import TodoDragHandle from "./TodoDragHandle";
 
 interface ITodoListItem {

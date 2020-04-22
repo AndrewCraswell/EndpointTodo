@@ -2,7 +2,7 @@ import React, { memo, useCallback } from "react";
 import { Paper } from "@material-ui/core";
 import { SortEnd } from 'react-sortable-hoc';
 
-import { ITodoItem } from '../models';
+import { ITodoItem } from '../../../models';
 import SortableTodoList from "./SortableTodoList";
 
 interface ITodoListProps {

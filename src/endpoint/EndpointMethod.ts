@@ -1,6 +1,6 @@
 import { createAction, nanoid } from "@reduxjs/toolkit";
 
-import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationResultMeta, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
+import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationResultMeta, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator, AsyncClearRequestsActionCreator } from '.';
 import { IEndpointMethodProps } from "./AsyncOrchestrationMeta";
 
 export type EndpointMethodMap = {
@@ -26,13 +26,15 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
   public Types: {
     Execute: string,
     Success: string,
-    Failure: string
+    Failure: string,
+    ClearRequests: string
   }
 
   // References to the underlying actions
   public Execute: AsyncExecuteActionCreator<RequestPayload, MethodProps>;
   public Success: AsyncSuccessActionCreator<RequestPayload, ResponsePayload, MethodProps>;
   public Failure: AsyncFailureActionCreator<RequestPayload, MethodProps>;
+  public ClearRequests: AsyncClearRequestsActionCreator;
 
   constructor(
     method: keyof typeof RequestMethod,
@@ -47,7 +49,7 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     this.Types = this.GetActionTypes();
 
     this._actions = actions;
-    [this.Execute, this.Success, this.Failure] = [actions.Execute, actions.Success, actions.Failure];
+    [this.Execute, this.Success, this.Failure, this.ClearRequests] = [actions.Execute, actions.Success, actions.Failure, actions.ClearRequests];
   }
 
   public Orchestrate(sliceName: string, baseUrl: string, methodName: string) {
@@ -95,10 +97,15 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     this.Failure = createAction(this.Types.Failure,
       (params: Error, props: IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
+    this.ClearRequests = createAction(this.Types.ClearRequests, (id: string | string[]) => ({
+      payload: id
+    }));
+
     this._actions = {
       Execute: this.Execute,
       Success: this.Success,
-      Failure: this.Failure
+      Failure: this.Failure,
+      ClearRequests: this.ClearRequests
     };
 
     return this._actions;
@@ -119,7 +126,8 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     return {
       Execute: `${slicePrefix}/Execute`,
       Success: `${slicePrefix}/Success`,
-      Failure: `${slicePrefix}/Failure`
+      Failure: `${slicePrefix}/Failure`,
+      ClearRequests: `${slicePrefix}/ClearRequests`
     }
   }
 }

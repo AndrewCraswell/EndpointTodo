@@ -4,6 +4,7 @@ import { SlimRequestResponse, RequestMethod } from './';
 
 export interface IRequestRecord {
   id: string;
+  type: string;
   isFetching: boolean;
   isFetched: boolean;
   isError: boolean;

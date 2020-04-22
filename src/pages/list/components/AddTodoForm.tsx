@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 
-import { ITodoItem } from '../models';
-import { ApplicationState } from '../store';
+import { ITodoItem } from '../../../models';
+import { ApplicationState } from '../../../store';
 
 interface IAddTodoForm {
   addTodoItem: (item: ITodoItem, props: void) => void
