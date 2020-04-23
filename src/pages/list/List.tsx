@@ -49,8 +49,6 @@ export const List: React.FunctionComponent = () => {
 
   useEffect(() => {
     getAllTodos();
-    getAllTodos();
-    getAllTodos();
 
   }, [getAllTodos]);
 

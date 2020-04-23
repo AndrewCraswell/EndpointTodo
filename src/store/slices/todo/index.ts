@@ -1,14 +1,20 @@
-import { createReducer } from "@reduxjs/toolkit";
+import { createReducer, createEntityAdapter } from "@reduxjs/toolkit";
 
 import { EndpointSlice } from "../../../endpoint";
-import { todoAdapter } from './schema';
 import { TodoMethods } from "./actions";
+import { ITodoItem } from "../../../models";
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
-
 // TODO: Use the Redux Toolkit createSlice() method internally
 
+// Data Adapters
+const todoAdapter = createEntityAdapter<ITodoItem>({
+  selectId: todo => todo.url,
+  sortComparer: (a, b) => a.order - b.order,
+})
+
+// Slice Definition
 export const TodoSlice = new EndpointSlice(
   'Todo',
   'https://todo-backend-typescript.herokuapp.com/',
@@ -16,8 +22,9 @@ export const TodoSlice = new EndpointSlice(
   TodoMethods
 )
 
+// Reducer
 const { Add, Delete, GetAll, GetById, Update } = TodoSlice.actions;
-export const todoReducer = createReducer(TodoSlice.initialState, {
+const todoReducer = createReducer(TodoSlice.initialState, {
   [GetAll.Success.type]: todoAdapter.addMany,
   [GetById.Success.type]: todoAdapter.addOne,
   [Add.Execute.type]: todoAdapter.addOne,
