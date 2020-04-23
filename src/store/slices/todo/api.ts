@@ -7,28 +7,27 @@ import { TodoSlice } from './';
 
 // TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
 
-export const cache = setupCache({
-  maxAge: 15 * 60 * 1000,
-  exclude: { query: false },
-  invalidate: async (config, request) => {
-    const method = request.method;
-
-    if (method && method.toLowerCase() !== 'get') {
-      if (config) {
-        const store = (config.store as any).store;
-        delete store[TodoSlice.baseUrl];
-      }
-
-    }
-  }
-})
-
-const http = axios.create({
-  adapter: cache.adapter
-})
-
-
 export class TodoApi {
+  public static cache = setupCache({
+    maxAge: 15 * 60 * 1000,
+    exclude: { query: false },
+    invalidate: async (config, request) => {
+      const method = request.method;
+
+      if (method && method.toLowerCase() !== 'get') {
+        if (config) {
+          const store = (config.store as any).store;
+          delete store[TodoSlice.baseUrl];
+        }
+
+      }
+    }
+  })
+
+  private static http = axios.create({
+    adapter: TodoApi.cache.adapter
+  });
+
   public static getAllTodos = (
     config: EndpointApiFunctionConfig<void, OptionalMethodProps<ICacheProps>>,
   ): Promise<IRequestResponse<ITodoItem[]>> => {
@@ -39,7 +38,7 @@ export class TodoApi {
       disableCache = props.disableCache ?? false;
     }
 
-    return http.request({
+    return TodoApi.http.request({
       url,
       method,
       cache: {
@@ -53,7 +52,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { method, payload } = config;
 
-    return http.request({
+    return TodoApi.http.request({
       url: `${payload}`,
       method
     });
@@ -64,7 +63,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { url, method, payload } = config;
 
-    return http.request({
+    return TodoApi.http.request({
       url,
       method,
       data: payload,
@@ -76,7 +75,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { method, payload } = config;
 
-    return http.request({
+    return TodoApi.http.request({
       url: `${payload?.url}`,
       method
     });
@@ -87,7 +86,7 @@ export class TodoApi {
   ): Promise<IRequestResponse<ITodoItem>> => {
     const { method, payload } = config;
 
-    return http.request({
+    return TodoApi.http.request({
       url: `${payload?.url}`,
       method,
       data: payload
