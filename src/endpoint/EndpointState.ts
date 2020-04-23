@@ -1,13 +1,11 @@
 import { EntityState } from '@reduxjs/toolkit';
 
-import { SlimRequestResponse, RequestMethod } from './';
+import { SlimRequestResponse, RequestMethod, RequestStatus } from './';
 
 export interface IRequestRecord {
   id: string;
   type: string;
-  isFetching: boolean;
-  isFetched: boolean;
-  isError: boolean;
+  status: RequestStatus
   params: any;
   method: RequestMethod;
   executedAt: Date;
@@ -16,7 +14,6 @@ export interface IRequestRecord {
 }
 
 export interface IEndpointState {
-  isFetching: boolean;
   requests: EntityState<IRequestRecord>;
 }
 

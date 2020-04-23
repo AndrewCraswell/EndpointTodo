@@ -1,4 +1,4 @@
-import { Reducer, AnyAction, createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
+import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update } from "@reduxjs/toolkit";
 import { produce, enablePatches, Patch, applyPatches } from "immer";
 
 import {
@@ -8,6 +8,7 @@ import {
   IRequestRecord
 } from "./";
 import { IEndpointMethodProps, IAsyncOrchestrationRequestMeta, IAsyncOrchestrationResultMeta } from "./AsyncOrchestrationMeta";
+import { RequestStatus } from "./RequestStatus";
 
 // Enable the Immer patches feature
 enablePatches();
@@ -18,12 +19,11 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly initialState: State & IEndpointState;
   public readonly actions: EndpointMethods;
   public readonly requests = createEntityAdapter<IRequestRecord>({
-    sortComparer: (a, b) => a.executedAt && b.executedAt ? a.executedAt.getTime() - b.executedAt.getTime() : 0,
+    sortComparer: (a, b) => a.executedAt && b.executedAt ? a.executedAt.getTime() - b.executedAt.getTime() : a.executedAt.getTime(),
   });
   public readonly requestSelectors = this.requests.getSelectors();
 
   private _defaultInitialState: IEndpointState = {
-    isFetching: false,
     requests: this.requests.getInitialState()
   }
   private _reducer: Reducer<State & IEndpointState> | undefined;
@@ -85,65 +85,70 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
       const type = actionType as string;
       if (type.startsWith(`@Restux/${this.name}`)) {
         return produce(baseState, (state) => {
-          const { selectAll } = this.requestSelectors;
           const asyncType = type.split("/").pop();
+          const { selectAll } = this.requestSelectors;
 
           switch (asyncType) {
             case "Execute": {
               const { meta, payload } = action as PayloadAction<any, string, IAsyncOrchestrationRequestMeta<Required<IEndpointMethodProps>>>;
               const id = action.meta.props.id;
 
-              state.isFetching = true;
               this.requests.addOne(state.requests, {
                 executedAt: new Date(),
                 id,
                 type,
-                isError: false,
-                isFetched: false,
-                isFetching: true,
+                status: RequestStatus.PENDING,
                 params: payload,
                 method: meta.props.method
               });
               break;
             }
-            case "Success": {
-              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<Required<IEndpointMethodProps>>>;
-              const id = action.meta.props.id;
+            case "Executing": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationRequestMeta<Required<IEndpointMethodProps>>>;
+              const id = meta.props.id;
 
               this.requests.updateOne(state.requests, {
                 id,
                 changes: {
-                  completedAt: new Date(),
-                  isFetched: true,
-                  isFetching: false,
-                  response: meta.response
+                  status: RequestStatus.EXECUTING,
                 }
               });
+              break;
+            }
+            case "Success": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<any, Required<IEndpointMethodProps>>>;
+              const id = meta.props.id;
 
-              // Determine if any requests are still in progress
-              state.isFetching = !!selectAll(state.requests).filter((r) => r && r.isFetching).length;
+              const changes = {
+                completedAt: new Date(),
+                status: RequestStatus.SUCCESS,
+                response: meta.response
+              }
+
+              // Update the original requests, and any that it may have superseded and are still in PENDING state waiting for a resolution
+              const changeRequests: Update<IRequestRecord>[] = selectAll(state.requests)
+                .filter((r) => r.status === RequestStatus.PENDING)
+                .map(r => ({ id: r.id, changes }))
+                .concat({ id, changes });
+
+              this.requests.updateMany(state.requests, changeRequests);
 
               // Remove any patches being tracked for rollback
               this._patches.delete(id);
               break;
             }
             case "Failure": {
-              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<Required<IEndpointMethodProps>>>;
-              const id = action.meta.props.id;
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<any, Required<IEndpointMethodProps>>>;
+              const id = meta.props.id;
 
               this.requests.updateOne(state.requests, {
                 id,
                 changes: {
                   completedAt: new Date(),
-                  isFetched: false,
-                  isFetching: false,
-                  isError: true,
+                  status: RequestStatus.FAILURE,
                   response: meta.response
                 }
               });
-
-              // Determine if any requests are still in progress
-              state.isFetching = !!selectAll(state.requests).filter((r) => r && r.isFetching).length;
 
               // Rollback any changes that were made optimistically
               if (this._patches.has(id)) {

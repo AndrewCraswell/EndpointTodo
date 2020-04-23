@@ -3,7 +3,6 @@ import { createReducer } from "@reduxjs/toolkit";
 import { EndpointSlice } from "../../../endpoint";
 import { todoAdapter } from './schema';
 import { TodoMethods } from "./actions";
-import { cache } from './api';
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting

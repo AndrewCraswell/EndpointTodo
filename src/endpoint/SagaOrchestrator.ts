@@ -37,6 +37,7 @@ class SagaOrchestrator implements AsyncOrchestrator {
         } as IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>;
 
         try {
+          yield put(actions.Executing(params, action.meta));
           const yielded = yield call(apiFunction, params, props);
 
           // We destructure away some items we don't want stored in Redux to reduce verbosity
