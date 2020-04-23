@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { AppBar, Toolbar, Typography, Paper, Tabs, Tab, FormControlLabel, Switch, IconButton } from "@material-ui/core";
+import { AppBar, Toolbar, Typography, Paper, Tabs, Tab, FormControlLabel, Switch, IconButton, Container } from "@material-ui/core";
 import SyncIcon from '@material-ui/icons/Sync';
 import { Link, useLocation } from "react-router-dom";
 
@@ -44,7 +44,9 @@ const Layout = memo(props => {
           />
         </Toolbar>
       </AppBar>
-      {props.children}
+      <Container maxWidth="md" style={{ padding: 16 }}>
+        {props.children}
+      </Container>
     </Paper>
   );
 });

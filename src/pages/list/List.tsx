@@ -4,19 +4,20 @@ import { SortEnd } from 'react-sortable-hoc';
 
 import AddTodoForm from "./components/AddTodoForm";
 import TodoList from "./components/TodoList";
-import { TodoSlice } from '../../store/slices/todo';
+import { TodoSlice } from '../../store/';
 import { useEndpointMethod } from '../../endpoint';
 import { ApplicationState } from '../../store';
 import { ITodoItem } from '../../models';
 
 // TODO: Use the todoAdapter selectors to query the items
 // TODO: Add a loading spinner
+const { actions: Todos } = TodoSlice;
 
 export const List: React.FunctionComponent = () => {
-  const getAllTodos = useEndpointMethod(TodoSlice.actions.GetAll);
-  const addTodo = useEndpointMethod(TodoSlice.actions.Add);
-  const deleteTodo = useEndpointMethod(TodoSlice.actions.Delete);
-  const updateTodo = useEndpointMethod(TodoSlice.actions.Update);
+  const getAllTodos = useEndpointMethod(Todos.GetAll);
+  const addTodo = useEndpointMethod(Todos.Add);
+  const deleteTodo = useEndpointMethod(Todos.Delete);
+  const updateTodo = useEndpointMethod(Todos.Update);
 
   const todos = useSelector((state: ApplicationState) => state.Todo.ids.map(id => state.Todo.entities[id]), shallowEqual);
 

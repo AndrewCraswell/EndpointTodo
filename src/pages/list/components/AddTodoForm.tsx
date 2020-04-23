@@ -40,7 +40,7 @@ const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Paper style={{ margin: 16, padding: 16 }}>
+      <Paper style={{ marginBottom: 16, padding: 16 }}>
         <Grid container>
           <Grid xs={10} md={11} item style={{ paddingRight: 16 }}>
             <TextField

@@ -23,7 +23,7 @@ const TodoList: React.FunctionComponent<ITodoListProps> = memo(props => {
   return (
     <>
       {items.length > 0 && (
-        <Paper style={{ margin: 16 }}>
+        <Paper>
           <SortableTodoList
             items={items}
             lockAxis="y"
