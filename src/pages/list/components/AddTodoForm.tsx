@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 
-import { ITodoItem } from '../models';
-import { ApplicationState } from '../store';
+import { ITodoItem } from '../../../models';
+import { ApplicationState } from '../../../store';
 
 interface IAddTodoForm {
   addTodoItem: (item: ITodoItem, props: void) => void
@@ -16,8 +16,8 @@ type TodoForm = {
 }
 
 const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
-  const { addTodoItem } = props;
   const { register, handleSubmit, reset, formState } = useForm<TodoForm>();
+  const { addTodoItem } = props;
 
   const nextOrderNum = useSelector((state: ApplicationState) => {
     const lastId = state.Todo.ids.slice(-1).pop();
@@ -40,7 +40,7 @@ const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Paper style={{ margin: 16, padding: 16 }}>
+      <Paper style={{ marginBottom: 16, padding: 16 }}>
         <Grid container>
           <Grid xs={10} md={11} item style={{ paddingRight: 16 }}>
             <TextField

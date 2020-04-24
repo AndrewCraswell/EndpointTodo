@@ -2,7 +2,7 @@ import React, { memo, useCallback } from "react";
 import { Paper } from "@material-ui/core";
 import { SortEnd } from 'react-sortable-hoc';
 
-import { ITodoItem } from '../models';
+import { ITodoItem } from '../../../models';
 import SortableTodoList from "./SortableTodoList";
 
 interface ITodoListProps {
@@ -19,11 +19,10 @@ const TodoList: React.FunctionComponent<ITodoListProps> = memo(props => {
     onItemSorted(result, items);
   }, [items, onItemSorted]);
 
-
   return (
     <>
       {items.length > 0 && (
-        <Paper style={{ margin: 16 }}>
+        <Paper>
           <SortableTodoList
             items={items}
             lockAxis="y"

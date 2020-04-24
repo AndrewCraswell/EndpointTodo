@@ -1,7 +1,19 @@
 import { createAction, nanoid } from "@reduxjs/toolkit";
 
-import { RequestMethod, AsyncMethodActions, EndpointApiFunction, AsyncOrchestrator, IAsyncOrchestrationMeta, AsyncExecuteActionCreator, AsyncSuccessActionCreator, AsyncFailureActionCreator } from '.';
-import { IEndpointMethodProps } from "./AsyncOrchestrationMeta";
+import {
+  RequestMethod,
+  AsyncMethodActions,
+  EndpointApiFunction,
+  AsyncOrchestrator,
+  IAsyncOrchestrationResultMeta,
+  AsyncExecuteActionCreator,
+  AsyncSuccessActionCreator,
+  AsyncFailureActionCreator,
+  AsyncClearRequestsActionCreator,
+  AsyncExecutingActionCreator,
+  IEndpointMethodProps,
+  IAsyncOrchestrationRequestMeta
+} from '.';
 
 export type EndpointMethodMap = {
   [name: string]: IEndpointMethod
@@ -25,14 +37,18 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
   // List of Action Types
   public Types: {
     Execute: string,
+    Executing: string,
     Success: string,
-    Failure: string
+    Failure: string,
+    ClearRequests: string
   }
 
   // References to the underlying actions
   public Execute: AsyncExecuteActionCreator<RequestPayload, MethodProps>;
+  public Executing: AsyncExecutingActionCreator<RequestPayload, MethodProps>;
   public Success: AsyncSuccessActionCreator<RequestPayload, ResponsePayload, MethodProps>;
   public Failure: AsyncFailureActionCreator<RequestPayload, MethodProps>;
+  public ClearRequests: AsyncClearRequestsActionCreator;
 
   constructor(
     method: keyof typeof RequestMethod,
@@ -47,7 +63,12 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     this.Types = this.GetActionTypes();
 
     this._actions = actions;
-    [this.Execute, this.Success, this.Failure] = [actions.Execute, actions.Success, actions.Failure];
+
+    this.Execute = actions.Execute;
+    this.Executing = actions.Executing;
+    this.Success = actions.Success;
+    this.Failure = actions.Failure;
+    this.ClearRequests = actions.ClearRequests;
   }
 
   public Orchestrate(sliceName: string, baseUrl: string, methodName: string) {
@@ -78,18 +99,36 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
     this.Types = this.GetActionTypes();
 
     this.Execute = createAction(this.Types.Execute,
-      (params: RequestPayload, props: MethodProps & IEndpointMethodProps) => ({ payload: params, meta: { ...props, id: props?.id || nanoid() } }));
+      (params: RequestPayload, props: MethodProps & IEndpointMethodProps) => ({
+        payload: params,
+        meta: {
+          props: {
+            ...props,
+            id: props?.id || nanoid(),
+            method: this.method
+          }
+        }
+      }));
+
+    this.Executing = createAction(this.Types.Executing,
+      (params: RequestPayload, props: IAsyncOrchestrationRequestMeta<MethodProps>) => ({ payload: params, meta: props }));
 
     this.Success = createAction(this.Types.Success,
-      (params: ResponsePayload, props: IAsyncOrchestrationMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+      (params: ResponsePayload, props: IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
 
     this.Failure = createAction(this.Types.Failure,
-      (params: Error, props: IAsyncOrchestrationMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+      (params: Error, props: IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>) => ({ payload: params, meta: props }));
+
+    this.ClearRequests = createAction(this.Types.ClearRequests, (id: string | string[]) => ({
+      payload: id
+    }));
 
     this._actions = {
       Execute: this.Execute,
+      Executing: this.Executing,
       Success: this.Success,
-      Failure: this.Failure
+      Failure: this.Failure,
+      ClearRequests: this.ClearRequests
     };
 
     return this._actions;
@@ -109,8 +148,10 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
 
     return {
       Execute: `${slicePrefix}/Execute`,
+      Executing: `${slicePrefix}/Executing`,
       Success: `${slicePrefix}/Success`,
-      Failure: `${slicePrefix}/Failure`
+      Failure: `${slicePrefix}/Failure`,
+      ClearRequests: `${slicePrefix}/ClearRequests`
     }
   }
 }

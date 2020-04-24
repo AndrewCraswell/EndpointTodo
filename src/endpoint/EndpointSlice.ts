@@ -1,37 +1,32 @@
-/* tslint:disable */
-import { Reducer, AnyAction } from "@reduxjs/toolkit";
+import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update } from "@reduxjs/toolkit";
 import { produce, enablePatches, Patch, applyPatches } from "immer";
 
 import {
   IEndpointState,
-  defaultEndpointState,
   reducerRegistry,
   EndpointMethodMap,
-  SlimRequestResponse,
+  IRequestRecord
 } from "./";
+import { IEndpointMethodProps, IAsyncOrchestrationRequestMeta, IAsyncOrchestrationResultMeta } from "./AsyncOrchestrationMeta";
+import { RequestStatus } from "./RequestStatus";
 
 // Enable the Immer patches feature
 enablePatches();
-
-export interface IEndpointRequest {
-  id: string;
-  params: any;
-  request: SlimRequestResponse;
-  isFetching: boolean;
-  isFetched: boolean;
-  isError: boolean;
-}
-
-export type StoredEndpointRequest = Partial<IEndpointRequest>;
 
 export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly name: string;
   public readonly baseUrl: string;
   public readonly initialState: State & IEndpointState;
-  public readonly Actions: EndpointMethods;
+  public readonly actions: EndpointMethods;
+  public readonly requests = createEntityAdapter<IRequestRecord>({
+    sortComparer: (a, b) => a.executedAt && b.executedAt ? a.executedAt.getTime() - b.executedAt.getTime() : a.executedAt.getTime(),
+  });
+  public readonly requestSelectors = this.requests.getSelectors();
 
+  private _defaultInitialState: IEndpointState = {
+    requests: this.requests.getInitialState()
+  }
   private _reducer: Reducer<State & IEndpointState> | undefined;
-  private _reductor: Reducer<IEndpointState & State, AnyAction>;
   private _patches: Map<string, Patch[]> = new Map<string, Patch[]>();
 
   get reducer() {
@@ -41,87 +36,136 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   constructor(name: string, baseUrl: string, initialState: State, methods: EndpointMethods) {
     this.name = name;
     this.baseUrl = baseUrl;
-    this.Actions = methods;
+    this.actions = methods;
 
     this.initialState = {
-      ...defaultEndpointState,
+      ...this._defaultInitialState,
       ...initialState,
     } as State & IEndpointState;
-
-    // TODO: Bind this reducer to only handle events from the slice
-    this._reductor = (
-      baseState: IEndpointState & State = this.initialState,
-      action: AnyAction
-    ) => {
-      return produce(baseState, (state) => {
-        const actionType = action.type;
-
-        if (actionType && isNaN(Number(actionType))) {
-          const type = actionType as string;
-          if (type.startsWith("@Restux")) {
-            const asyncType = type.split("/").pop();
-            const id = action.meta.id;
-            switch (asyncType) {
-              case "Execute":
-                state.isFetching = true;
-                state.isError = false;
-                break;
-              case "Success":
-                state.isFetching = false;
-                state.isFetched = true;
-                state.isError = false;
-
-                // Remove any patches being tracked for rollback
-                this._patches.delete(id);
-                break;
-              case "Failure":
-                state.isFetching = false;
-                state.isFetched = true;
-                state.isError = true;
-
-                // Rollback any changes that were made optimistically
-                if (this._patches.has(id)) {
-                  applyPatches(state, this._patches.get(id)!);
-                  this._patches.delete(id);
-                }
-                break;
-            }
-          }
-        }
-      });
-    };
 
     for (const [methodName, method] of Object.entries(methods)) {
       method.Orchestrate(this.name, this.baseUrl, methodName);
     }
   }
 
-  // Allow the different reducers to be registered
+  // TODO: Allow the different reducers to be registered
   public registerReducer(reducer: Reducer<State & IEndpointState>) {
     const that = this;
 
-    this._reducer = (
-      state: IEndpointState & State = this.initialState,
-      action: AnyAction
-    ) => {
-      function injectImmer(baseState: IEndpointState & State, action: AnyAction) {
-        return produce(baseState, (draft: any) => { reducer(draft, action); }, (patches, inverse) => {
-          const id = action?.meta?.id;
-          const isDisabled = action?.meta?.disableRollback;
+    function injectImmer(baseState: IEndpointState & State, action: AnyAction) {
+      return produce(baseState, (draft: any) => { reducer(draft, action); }, (patches, inverse) => {
+        const id = action?.meta?.id;
+        const isDisabled = action?.meta?.disableRollback;
 
-          if (id && !isDisabled && patches.length) {
-            if(that._patches.has(id)) {
-              that._patches.get(id)?.concat(inverse);
-            } else {
-              that._patches.set(id, inverse);
-            }
+        if (id && !isDisabled && patches.length) {
+          if(that._patches.has(id)) {
+            that._patches.get(id)?.concat(inverse);
+          } else {
+            that._patches.set(id, inverse);
           }
-        });
-      }
+        }
+      });
+    }
 
-      return this._reductor(injectImmer(state, action), action);
+    this._reducer = (state = this.initialState, action) => {
+      return this.reductor(injectImmer(state, action), action);
     };
 
     reducerRegistry.register(this.name, this._reducer);
   }
+
+  // The base reducer which process any endpoint method actions before the slice reducers executes
+  private reductor(
+    baseState: IEndpointState & State = this.initialState,
+    action: AnyAction
+  ) {
+    const actionType = action.type;
+
+    if (actionType && isNaN(Number(actionType))) {
+      const type = actionType as string;
+      if (type.startsWith(`@Restux/${this.name}`)) {
+        return produce(baseState, (state) => {
+          const asyncType = type.split("/").pop();
+          const { selectAll } = this.requestSelectors;
+
+          switch (asyncType) {
+            case "Execute": {
+              const { meta, payload } = action as PayloadAction<any, string, IAsyncOrchestrationRequestMeta<Required<IEndpointMethodProps>>>;
+              const id = action.meta.props.id;
+
+              this.requests.addOne(state.requests, {
+                executedAt: new Date(),
+                id,
+                type,
+                status: RequestStatus.PENDING,
+                params: payload,
+                method: meta.props.method
+              });
+              break;
+            }
+            case "Executing": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationRequestMeta<Required<IEndpointMethodProps>>>;
+              const id = meta.props.id;
+
+              this.requests.updateOne(state.requests, {
+                id,
+                changes: {
+                  status: RequestStatus.EXECUTING,
+                }
+              });
+              break;
+            }
+            case "Success": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<any, Required<IEndpointMethodProps>>>;
+              const id = meta.props.id;
+
+              const changes = {
+                completedAt: new Date(),
+                status: RequestStatus.SUCCESS,
+                response: meta.response
+              }
+
+              // Update the original requests, and any that it may have superseded and are still in PENDING state waiting for a resolution
+              const changeRequests: Update<IRequestRecord>[] = selectAll(state.requests)
+                .filter((r) => r.status === RequestStatus.PENDING)
+                .map(r => ({ id: r.id, changes }))
+                .concat({ id, changes });
+
+              this.requests.updateMany(state.requests, changeRequests);
+
+              // Remove any patches being tracked for rollback
+              this._patches.delete(id);
+              break;
+            }
+            case "Failure": {
+              const { meta } = action as PayloadAction<any, string, IAsyncOrchestrationResultMeta<any, Required<IEndpointMethodProps>>>;
+              const id = meta.props.id;
+
+              this.requests.updateOne(state.requests, {
+                id,
+                changes: {
+                  completedAt: new Date(),
+                  status: RequestStatus.FAILURE,
+                  response: meta.response
+                }
+              });
+
+              // Rollback any changes that were made optimistically
+              if (this._patches.has(id)) {
+                applyPatches(state, this._patches.get(id)!);
+                this._patches.delete(id);
+              }
+              break;
+            }
+            case "ClearRequests": {
+              this.requests.removeMany(state.requests, action.payload);
+              break;
+            }
+          }
+        });
+      }
+    }
+
+    return baseState;
+  };
 }

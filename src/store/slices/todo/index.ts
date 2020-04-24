@@ -1,15 +1,22 @@
-import { createReducer } from "@reduxjs/toolkit";
+import { createReducer, createEntityAdapter } from "@reduxjs/toolkit";
 
 import { EndpointSlice } from "../../../endpoint";
-import { todoAdapter } from './schema';
 import { TodoMethods } from "./actions";
-import { cache } from './api';
+import { ITodoItem } from "../../../models";
 
 // TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
 //  This will allow us to fix code-splitting
-
 // TODO: Use the Redux Toolkit createSlice() method internally
 
+// Data Adapters
+const todoAdapter = createEntityAdapter<ITodoItem>({
+  selectId: todo => todo.url,
+  sortComparer: (a, b) => a.order - b.order,
+});
+
+export const TodoSelectors = todoAdapter.getSelectors();
+
+// Slice Definition
 export const TodoSlice = new EndpointSlice(
   'Todo',
   'https://todo-backend-typescript.herokuapp.com/',
@@ -17,8 +24,9 @@ export const TodoSlice = new EndpointSlice(
   TodoMethods
 )
 
-const { Add, Delete, GetAll, GetById, Update } = TodoSlice.Actions;
-export const todoReducer = createReducer(TodoSlice.initialState, {
+// Reducer
+const { Add, Delete, GetAll, GetById, Update } = TodoSlice.actions;
+const todoReducer = createReducer(TodoSlice.initialState, {
   [GetAll.Success.type]: todoAdapter.addMany,
   [GetById.Success.type]: todoAdapter.addOne,
   [Add.Execute.type]: todoAdapter.addOne,
@@ -27,8 +35,6 @@ export const todoReducer = createReducer(TodoSlice.initialState, {
     todoAdapter.addOne(state, action.payload);
   },
   [Delete.Execute.type]: (state, action: ReturnType<typeof Delete.Execute>) => {
-
-    //cache.store.removeItem('');
     todoAdapter.removeOne(state, action.payload.url);
   },
   [Update.Execute.type]: (state, action: ReturnType<typeof Update.Execute>) => {

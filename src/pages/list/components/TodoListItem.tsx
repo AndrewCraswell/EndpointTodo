@@ -8,8 +8,10 @@ import {
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
 
-import { ITodoItem } from '../models';
+import { ITodoItem } from '../../../models';
 import TodoDragHandle from "./TodoDragHandle";
+
+import './TodoListItem.scss';
 
 interface ITodoListItem {
   divider: boolean;
@@ -19,7 +21,7 @@ interface ITodoListItem {
 }
 
 const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
-  const { item, divider, onButtonClick, onCheckBoxToggle } = props;
+  const { item, onButtonClick, onCheckBoxToggle } = props;
 
   const onCheck = useCallback(() => {
     onCheckBoxToggle(item);
@@ -30,7 +32,7 @@ const TodoListItem: React.FunctionComponent<ITodoListItem> = memo(props => {
   }, [onButtonClick, item]);
 
   return (
-      <ListItem divider={divider}>
+      <ListItem>
         <TodoDragHandle />
 
         <Checkbox

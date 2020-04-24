@@ -1,7 +1,7 @@
 import React from "react";
 import { SortableElement } from 'react-sortable-hoc';
 
-import { ITodoItem } from "../models";
+import { ITodoItem } from "../../../models";
 import TodoListItem from "./TodoListItem";
 
 import './SortableTodo.scss';

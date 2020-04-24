@@ -15,3 +15,4 @@ export * from './EffectCreator';
 export * from './useEndpointMethod';
 export * from './AsyncOrchestrationMeta';
 export * from './OptionalMethodProps';
+export * from './RequestStatus';
