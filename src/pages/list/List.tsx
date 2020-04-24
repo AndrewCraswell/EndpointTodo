@@ -1,10 +1,10 @@
 import React, { useEffect, useCallback } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { SortEnd } from 'react-sortable-hoc';
 
 import AddTodoForm from "./components/AddTodoForm";
 import TodoList from "./components/TodoList";
-import { TodoSlice } from '../../store/';
+import { TodoSlice, TodoSelectors } from '../../store/';
 import { useEndpointMethod, useEndpointMethodRequests } from '../../endpoint';
 import { ApplicationState } from '../../store';
 import { ITodoItem } from '../../models';
@@ -21,7 +21,7 @@ export const List: React.FunctionComponent = () => {
   const deleteTodo = useEndpointMethod(Todos.Delete);
   const updateTodo = useEndpointMethod(Todos.Update);
 
-  const todos = useSelector((state: ApplicationState) => Object.values(state.Todo.entities), shallowEqual);
+  const todos = useSelector((state: ApplicationState) => TodoSelectors.selectAll(state.Todo));
 
   const onDeleteItem = useCallback((item: ITodoItem) => {
     deleteTodo(item);
@@ -45,8 +45,10 @@ export const List: React.FunctionComponent = () => {
     }
 
     for (let i = startIndex; i <= endIndex; i++) {
-      sortable[i] = { ...sortable[i], order: i + 1 };
-      updateTodo(sortable[i]);
+      const order = i + 1;
+      if (sortable[i].order !== order) {
+        updateTodo({ ...sortable[i], order });
+      }
     }
   }, [updateTodo]);
 

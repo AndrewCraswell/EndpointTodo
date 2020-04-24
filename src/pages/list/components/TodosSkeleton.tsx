@@ -3,21 +3,23 @@ import { Paper, ListItem, IconButton, ListItemSecondaryAction } from "@material-
 import { DragHandleRounded, DeleteOutlined } from "@material-ui/icons";
 import { Skeleton } from "@material-ui/lab";
 
+import 'TodoSkeleton.scss';
+
 export const TodosSkeleton: React.FunctionComponent = () => (
   <Paper>
-    {[0.8, 0.6, 0.4, 0.2].map((opacity) => (
-      <ListItem style={{ opacity }}>
+    {[0.8, 0.6, 0.4, 0.2].map((opacity, index) => (
+      <ListItem key={index} style={{ opacity }}>
         <IconButton disabled>
           <DragHandleRounded />
         </IconButton>
 
-        <div style={{ width: '100%', maxWidth: 450, display: 'flex' }}>
-          <Skeleton variant="rect" width={20} height={20} style={{ margin: '0 12px' }} />
-          <Skeleton style={{ flexGrow: 1 }} />
+        <div className="todo-skeleton-container">
+          <Skeleton className="todo-checkbox-skeleton" variant="rect" width={20} height={20} />
+          <Skeleton className="todo-text-skeleton" />
         </div>
 
         <ListItemSecondaryAction>
-          <IconButton disabled>
+          <IconButton disabled style={{ opacity }}>
             <DeleteOutlined />
           </IconButton>
         </ListItemSecondaryAction>

@@ -16,8 +16,8 @@ type TodoForm = {
 }
 
 const AddTodoForm: React.FunctionComponent<IAddTodoForm> = memo((props) => {
-  const { addTodoItem } = props;
   const { register, handleSubmit, reset, formState } = useForm<TodoForm>();
+  const { addTodoItem } = props;
 
   const nextOrderNum = useSelector((state: ApplicationState) => {
     const lastId = state.Todo.ids.slice(-1).pop();

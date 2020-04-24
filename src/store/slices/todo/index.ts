@@ -12,7 +12,9 @@ import { ITodoItem } from "../../../models";
 const todoAdapter = createEntityAdapter<ITodoItem>({
   selectId: todo => todo.url,
   sortComparer: (a, b) => a.order - b.order,
-})
+});
+
+export const TodoSelectors = todoAdapter.getSelectors();
 
 // Slice Definition
 export const TodoSlice = new EndpointSlice(

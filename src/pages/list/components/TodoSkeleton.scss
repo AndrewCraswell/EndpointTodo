@@ -1,0 +1,14 @@
+.todo-skeleton-container {
+  width: 100%;
+  max-width: 650px;
+  display: 'flex';
+
+  .todo-checkbox-skeleton {
+    margin: 0 12px;
+  }
+
+  .todo-text-skeleton {
+    flex-grow: 1
+  }
+}
+
