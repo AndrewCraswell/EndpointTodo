@@ -1,4 +1,4 @@
-import { IEndpointMethodProps } from "."
+import { IEndpointMethodProps } from ".."
 
 export type OptionalMethodProps<Props> = Props | void
 

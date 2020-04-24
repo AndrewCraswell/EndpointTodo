@@ -1,4 +1,4 @@
-import { AsyncMethodActions, EndpointHandledApiFunction } from '.';
+import { AsyncMethodActions, EndpointHandledApiFunction } from '..';
 
 export type AsyncOrchestratorConfig<RequestPayload = void, ResponsePayload = void, MethodProps = void> =  {
   name: string,

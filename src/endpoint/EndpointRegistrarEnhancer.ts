@@ -1,6 +1,6 @@
 import { AnyAction, combineReducers, StoreCreator, StoreEnhancer, Reducer, ReducersMapObject } from 'redux';
 
-import { reducerRegistry } from './ReducerRegistry';
+import { reducerRegistry } from './';
 
 export function endpointRegistrarEnhancer(): StoreEnhancer<any> {
   return (createStore: StoreCreator) => <S, A extends AnyAction>(

@@ -4,7 +4,7 @@ import { Saga } from 'redux-saga';
 
 import { endpointRegistrarEnhancer } from '../endpoint';
 import { TodoSlice } from './slices/todo';
-import { sagaRegistry } from '../endpoint/SagaRegistry';
+import { sagaRegistry } from '../endpoint/saga';
 
 export type ApplicationState = {
   // This breaks code-splitting

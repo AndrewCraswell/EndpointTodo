@@ -1,4 +1,4 @@
-import { SlimRequestResponse, RequestMethod } from ".";
+import { SlimRequestResponse, RequestMethod } from "..";
 
 export interface IEndpointMethodProps {
   id?: string;

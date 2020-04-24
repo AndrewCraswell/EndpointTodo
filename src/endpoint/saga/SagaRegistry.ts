@@ -1,7 +1,7 @@
 import { Saga } from 'redux-saga';
 import { all, fork } from 'redux-saga/effects';
 
-import { AsyncRegistry, AsyncItemRegistrar } from './AsyncRegistry';
+import { AsyncRegistry, AsyncItemRegistrar } from '../';
 
 export interface IAnthology {
   /** The name of the anthology */

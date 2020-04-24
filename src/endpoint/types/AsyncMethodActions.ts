@@ -1,7 +1,6 @@
-
 import { ActionCreatorWithPreparedPayload } from "@reduxjs/toolkit";
 
-import { IAsyncOrchestrationResultMeta, IAsyncOrchestrationRequestMeta, IEndpointMethodProps } from "./";
+import { IAsyncOrchestrationResultMeta, IAsyncOrchestrationRequestMeta, IEndpointMethodProps } from "..";
 
 export type AsyncExecuteActionCreator<RequestPayload, MethodProps> = ActionCreatorWithPreparedPayload<[RequestPayload, MethodProps], RequestPayload, string, never, IAsyncOrchestrationRequestMeta<MethodProps & IEndpointMethodProps>>;
 export type AsyncExecutingActionCreator<RequestPayload, MethodProps> = ActionCreatorWithPreparedPayload<[RequestPayload, IAsyncOrchestrationRequestMeta<MethodProps & IEndpointMethodProps>], RequestPayload, string, never, IAsyncOrchestrationRequestMeta<MethodProps & IEndpointMethodProps>>;
