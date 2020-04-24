@@ -27,7 +27,7 @@ export const TodoSlice = new EndpointSlice(
 // Reducer
 const { Add, Delete, GetAll, GetById, Update } = TodoSlice.actions;
 const todoReducer = createReducer(TodoSlice.initialState, {
-  [GetAll.Success.type]: todoAdapter.addMany,
+  [GetAll.Success.type]: todoAdapter.upsertMany,
   [GetById.Success.type]: todoAdapter.addOne,
   [Add.Execute.type]: todoAdapter.addOne,
   [Add.Success.type]: (state, action: ReturnType<typeof Add.Success>) => {
