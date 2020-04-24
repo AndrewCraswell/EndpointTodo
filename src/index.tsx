@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { CssBaseline } from '@material-ui/core';
 
-import App from './App';
+import App from './components/App';
 import { store } from './store';
 import { UseCacheProvider } from './components/UseCacheProvider';
 
