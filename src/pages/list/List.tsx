@@ -10,8 +10,6 @@ import { ApplicationState } from '../../store';
 import { ITodoItem } from '../../models';
 import { TodosSkeleton } from './components/TodosSkeleton';
 
-// TODO: Use the todoAdapter selectors to query the items
-// TODO: Add a loading spinner
 const { actions: Todos } = TodoSlice;
 
 export const List: React.FunctionComponent = () => {
