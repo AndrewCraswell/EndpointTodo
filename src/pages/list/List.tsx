@@ -5,9 +5,10 @@ import { SortEnd } from 'react-sortable-hoc';
 import AddTodoForm from "./components/AddTodoForm";
 import TodoList from "./components/TodoList";
 import { TodoSlice } from '../../store/';
-import { useEndpointMethod } from '../../endpoint';
+import { useEndpointMethod, useEndpointMethodRequests } from '../../endpoint';
 import { ApplicationState } from '../../store';
 import { ITodoItem } from '../../models';
+import { TodosSkeleton } from './components/TodosSkeleton';
 
 // TODO: Use the todoAdapter selectors to query the items
 // TODO: Add a loading spinner
@@ -15,11 +16,12 @@ const { actions: Todos } = TodoSlice;
 
 export const List: React.FunctionComponent = () => {
   const getAllTodos = useEndpointMethod(Todos.GetAll);
+  const { isFetching: isTodosFetching } = useEndpointMethodRequests(Todos.GetAll);
   const addTodo = useEndpointMethod(Todos.Add);
   const deleteTodo = useEndpointMethod(Todos.Delete);
   const updateTodo = useEndpointMethod(Todos.Update);
 
-  const todos = useSelector((state: ApplicationState) => state.Todo.ids.map(id => state.Todo.entities[id]), shallowEqual);
+  const todos = useSelector((state: ApplicationState) => Object.values(state.Todo.entities), shallowEqual);
 
   const onDeleteItem = useCallback((item: ITodoItem) => {
     deleteTodo(item);
@@ -56,12 +58,16 @@ export const List: React.FunctionComponent = () => {
   return (
     <React.Fragment>
       <AddTodoForm addTodoItem={addTodo} />
-      <TodoList
-        items={todos as ITodoItem[]}
-        onItemCheck={onCheckedItem}
-        onItemRemove={onDeleteItem}
-        onItemSorted={onItemSorted}
-      />
+      {isTodosFetching ? (
+        <TodosSkeleton />
+      ) : (
+        <TodoList
+          items={todos as ITodoItem[]}
+          onItemCheck={onCheckedItem}
+          onItemRemove={onDeleteItem}
+          onItemSorted={onItemSorted}
+        />
+      )}
     </React.Fragment>
   );
 }

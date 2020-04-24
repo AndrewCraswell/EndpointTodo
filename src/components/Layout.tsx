@@ -7,9 +7,11 @@ import { useEndpointMethod } from "../endpoint";
 import { TodoSlice } from "../store/slices/todo";
 import { useCache } from './UseCacheProvider';
 
+const { actions: Todos } = TodoSlice;
+
 const Layout = memo(props => {
-  const getAllTodos = useEndpointMethod(TodoSlice.actions.GetAll);
   const { isCacheEnabled, setCacheEnabled } = useCache();
+  const getAllTodos = useEndpointMethod(Todos.GetAll);
   const location = useLocation();
 
   const onSyncClick = useCallback(() => {

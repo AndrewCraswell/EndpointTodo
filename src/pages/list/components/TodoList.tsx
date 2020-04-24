@@ -19,7 +19,6 @@ const TodoList: React.FunctionComponent<ITodoListProps> = memo(props => {
     onItemSorted(result, items);
   }, [items, onItemSorted]);
 
-
   return (
     <>
       {items.length > 0 && (
