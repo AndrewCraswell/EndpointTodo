@@ -1,5 +1,4 @@
-import { RequestMethod, IRequestResponse } from ".";
-import { IEndpointMethodProps } from "./AsyncOrchestrationMeta";
+import { RequestMethod, IRequestResponse, IEndpointMethodProps } from "..";
 
 export type EndpointApiFunctionConfig<RequestPayload = void, MethodProps = IEndpointMethodProps | void> = {
   url: string,

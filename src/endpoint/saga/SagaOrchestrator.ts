@@ -2,8 +2,8 @@
 import { call, put, takeLeading, takeEvery, takeLatest } from 'redux-saga/effects';
 import { AnyAction } from 'redux';
 
-import { EffectCreator, PromiseType, AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationResultMeta } from '.';
-import { sagaRegistry } from './SagaRegistry';
+import { AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationResultMeta } from '..';
+import { sagaRegistry, EffectCreator, PromiseType,  } from './';
 
 // TODO: Implement saga chaining, or action chaining
 

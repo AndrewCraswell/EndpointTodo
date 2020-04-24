@@ -5,7 +5,7 @@ import { SortEnd } from 'react-sortable-hoc';
 import AddTodoForm from "./components/AddTodoForm";
 import TodoList from "./components/TodoList";
 import { TodoSlice, TodoSelectors } from '../../store/';
-import { useEndpointMethod, useEndpointMethodRequests } from '../../endpoint';
+import { useEndpointMethod, useMethodRequests } from '../../endpoint';
 import { ApplicationState } from '../../store';
 import { ITodoItem } from '../../models';
 import { TodosSkeleton } from './components/TodosSkeleton';
@@ -14,7 +14,7 @@ const { actions: Todos } = TodoSlice;
 
 export const List: React.FunctionComponent = () => {
   const getAllTodos = useEndpointMethod(Todos.GetAll);
-  const { isFetching: isTodosFetching } = useEndpointMethodRequests(Todos.GetAll);
+  const { isFetching: isTodosFetching } = useMethodRequests(Todos.GetAll);
   const addTodo = useEndpointMethod(Todos.Add);
   const deleteTodo = useEndpointMethod(Todos.Delete);
   const updateTodo = useEndpointMethod(Todos.Update);

@@ -1,6 +1,7 @@
-import { EndpointMethod, Orchestrators, OptionalMethodProps } from "../../../endpoint";
+import { EndpointMethod, OptionalMethodProps } from "../../../endpoint";
 import { ITodoItem, ICacheProps } from "../../../models";
 import { TodoApi } from "./api";
+import { Orchestrators } from "../../../endpoint/saga";
 
 export const TodoMethods = {
   GetAll: new EndpointMethod<void, ITodoItem[], OptionalMethodProps<ICacheProps>>('GET', TodoApi.getAllTodos, Orchestrators.takeLeading),

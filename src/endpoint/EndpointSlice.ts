@@ -5,10 +5,12 @@ import {
   IEndpointState,
   reducerRegistry,
   EndpointMethodMap,
-  IRequestRecord
+  IRequestRecord,
+  IEndpointMethodProps,
+  IAsyncOrchestrationRequestMeta,
+  IAsyncOrchestrationResultMeta,
+  RequestStatus
 } from "./";
-import { IEndpointMethodProps, IAsyncOrchestrationRequestMeta, IAsyncOrchestrationResultMeta } from "./AsyncOrchestrationMeta";
-import { RequestStatus } from "./RequestStatus";
 
 // Enable the Immer patches feature
 enablePatches();
@@ -54,10 +56,10 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
 
     function injectImmer(baseState: IEndpointState & State, action: AnyAction) {
       return produce(baseState, (draft: any) => { reducer(draft, action); }, (patches, inverse) => {
-        const id = action?.meta?.id;
-        const isDisabled = action?.meta?.disableRollback;
+        const id = action?.meta?.props?.id;
+        const isDisabled = action?.meta?.props?.disableRollback;
 
-        if (id && !isDisabled && patches.length) {
+        if (id && !isDisabled) {
           if(that._patches.has(id)) {
             that._patches.get(id)?.concat(inverse);
           } else {

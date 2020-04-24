@@ -4,10 +4,6 @@ import { EndpointSlice } from "../../../endpoint";
 import { TodoMethods } from "./actions";
 import { ITodoItem } from "../../../models";
 
-// TODO: Restrict TodoSliceState to being required to inherit from the IEndpointState
-//  This will allow us to fix code-splitting
-// TODO: Use the Redux Toolkit createSlice() method internally
-
 // Data Adapters
 const todoAdapter = createEntityAdapter<ITodoItem>({
   selectId: todo => todo.url,
