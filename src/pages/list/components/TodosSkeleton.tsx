@@ -3,7 +3,7 @@ import { Paper, ListItem, IconButton, ListItemSecondaryAction } from "@material-
 import { DragHandleRounded, DeleteOutlined } from "@material-ui/icons";
 import { Skeleton } from "@material-ui/lab";
 
-import 'TodoSkeleton.scss';
+import './TodosSkeleton.scss';
 
 export const TodosSkeleton: React.FunctionComponent = () => (
   <Paper>
