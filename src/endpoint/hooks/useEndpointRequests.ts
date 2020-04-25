@@ -1,13 +1,16 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Dictionary } from '@reduxjs/toolkit';
 
 import { EndpointSlice, isRequestFetching, IRequestRecord, IEndpointState } from '..';
+import { EndpointMethodMap } from '../EndpointMethod';
 
-export const useEndpointRequests = (
-  endpoint: EndpointSlice<any, any>,
+export const useEndpointRequests = <EndpointMethods extends EndpointMethodMap>(
+  endpoint: EndpointSlice<any, EndpointMethods>,
   ids?: string | string[]
 ) => {
   const requestsRef = useRef<IRequestRecord[]>([]);
+  const entitiesRef = useRef<Dictionary<IRequestRecord>>({});
   const dispatch = useDispatch();
   const sliceName = endpoint.name;
 
@@ -18,40 +21,46 @@ export const useEndpointRequests = (
 
   const [requests, isFetching] = useSelector((state: any) => {
     const slice: IEndpointState = state[sliceName];
-
-    let isFetching = false;
     const requests = Object.values(slice.requests.entities).filter((r) => (queryIds && r) ? queryIds.includes(r.id) : !!r) as IRequestRecord[];
-    for (const request of requests) {
-      if (request && isRequestFetching(request)) {
-        isFetching = true;
-        break;
-      }
-    }
+
+    let isFetching = requests.some(r => r && isRequestFetching(r));
 
     requestsRef.current = requests;
+    entitiesRef.current = slice.requests.entities;
     return [requests, isFetching];
   });
 
   const flushRequests = useCallback((idsToFlush?: string | string[]) => {
     let flushIds: string[] | undefined;
-    if (idsToFlush && !Array.isArray(idsToFlush)) {
-      flushIds = [idsToFlush];
+    if (idsToFlush) {
+      flushIds = Array.isArray(idsToFlush) ? idsToFlush : [idsToFlush];
     }
 
-    const requests = requestsRef.current;
-    const requestsToFlush = requests.filter(r => {
-      if (flushIds) {
-        const foundIndex = flushIds.findIndex(id => id === r.id);
-        if (foundIndex) {
-          flushIds.splice(foundIndex, 1);
-          return true;
+    if (!flushIds) {
+      flushIds = Object.keys(entitiesRef.current);
+    }
+
+    const entities = entitiesRef.current;
+    const requestsMap: { [id: string]: string[] } = {};
+    for(const id of flushIds) {
+      const request = entities[id];
+      if (request) {
+        const type = request.type;
+        if (requestsMap[type]) {
+          requestsMap[type].push(request.id);
+        } else {
+          requestsMap[type] = [request.id];
         }
       }
-      return false;
-    }).map(r => r.id)
+    }
 
-    if (requestsToFlush.length) {
-      dispatch(endpoint.actions.ClearRequests(requestsToFlush));
+    const actions: EndpointMethodMap = endpoint.actions;
+    for (const type of Object.keys(requestsMap)) {
+      for (const action of Object.values(actions)) {
+        if (Object.values(action.Types).includes(type)) {
+          dispatch(action.ClearRequests(requestsMap[type]));
+        }
+      }
     }
   }, [dispatch, endpoint]);
 

@@ -1,11 +1,12 @@
 import React, { useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { SortEnd } from 'react-sortable-hoc';
+import { Alert } from '@material-ui/lab';
 
 import AddTodoForm from "./components/AddTodoForm";
 import TodoList from "./components/TodoList";
 import { TodoSlice, TodoSelectors } from '../../store/';
-import { useEndpointMethod, useMethodRequests } from '../../endpoint';
+import { useEndpointMethod, useMethodRequests, useEndpointRequests, RequestStatus } from '../../endpoint';
 import { ApplicationState } from '../../store';
 import { ITodoItem } from '../../models';
 import { TodosSkeleton } from './components/TodosSkeleton';
@@ -13,13 +14,19 @@ import { TodosSkeleton } from './components/TodosSkeleton';
 const { actions: Todos } = TodoSlice;
 
 export const List: React.FunctionComponent = () => {
-  const getAllTodos = useEndpointMethod(Todos.GetAll);
+  const { requests: todoEndpointRequests, flushRequests } = useEndpointRequests(TodoSlice);
   const { isFetching: isTodosFetching } = useMethodRequests(Todos.GetAll);
+  const getAllTodos = useEndpointMethod(Todos.GetAll);
   const addTodo = useEndpointMethod(Todos.Add);
   const deleteTodo = useEndpointMethod(Todos.Delete);
   const updateTodo = useEndpointMethod(Todos.Update);
 
+  const requestErrorIds = todoEndpointRequests.filter(r => r.status === RequestStatus.FAILURE).map(r => r.id);
   const todos = useSelector((state: ApplicationState) => TodoSelectors.selectAll(state.Todo));
+
+  const dismissError = useCallback((id: string) => {
+    flushRequests(id);
+  }, [flushRequests]);
 
   const onDeleteItem = useCallback((item: ITodoItem) => {
     deleteTodo(item);
@@ -52,11 +59,17 @@ export const List: React.FunctionComponent = () => {
 
   useEffect(() => {
     getAllTodos();
-
   }, [getAllTodos]);
 
   return (
     <React.Fragment>
+      {
+        requestErrorIds.map((id) => (
+          <Alert onClose={() => dismissError(id)} severity="error" style={{ marginBottom: 16 }}>
+            We encountered an error trying to save your selection.
+          </Alert>
+        ))
+      }
       <AddTodoForm addTodoItem={addTodo} />
       {isTodosFetching ? (
         <TodosSkeleton />
