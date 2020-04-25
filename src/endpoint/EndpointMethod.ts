@@ -20,6 +20,14 @@ export type EndpointMethodMap = {
 }
 
 export interface IEndpointMethod {
+  Types: {
+    Execute: string,
+    Executing: string,
+    Success: string,
+    Failure: string,
+    ClearRequests: string
+  };
+  ClearRequests: AsyncClearRequestsActionCreator;
   Orchestrate(sliceName: string, baseUrl: string, methodName?: string): void;
 }
 
