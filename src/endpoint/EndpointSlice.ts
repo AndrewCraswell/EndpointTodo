@@ -1,5 +1,5 @@
-import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update } from "@reduxjs/toolkit";
-import { produce, enablePatches, Patch, applyPatches } from "immer";
+import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update, createNextState } from "@reduxjs/toolkit";
+import { enablePatches, Patch, applyPatches } from "immer";
 
 import {
   IEndpointState,
@@ -55,7 +55,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
     const that = this;
 
     function injectImmer(baseState: IEndpointState & State, action: AnyAction) {
-      return produce(baseState, (draft: any) => { reducer(draft, action); }, (patches, inverse) => {
+      return createNextState(baseState, (draft: any) => { reducer(draft, action); }, (patches, inverse) => {
         const id = action?.meta?.props?.id;
         const isDisabled = action?.meta?.props?.disableRollback;
 
@@ -86,7 +86,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
     if (actionType && isNaN(Number(actionType))) {
       const type = actionType as string;
       if (type.startsWith(`@Restux/${this.name}`)) {
-        return produce(baseState, (state) => {
+        return createNextState(baseState, (state) => {
           const asyncType = type.split("/").pop();
           const { selectAll } = this.requestSelectors;
 

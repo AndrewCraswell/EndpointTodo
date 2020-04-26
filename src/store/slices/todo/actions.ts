@@ -4,9 +4,37 @@ import { TodoApi } from "./api";
 import { Orchestrators } from "../../../endpoint/saga";
 
 export const TodoMethods = {
-  GetAll: new EndpointMethod<void, ITodoItem[], OptionalMethodProps<ICacheProps>>('GET', TodoApi.getAllTodos, Orchestrators.takeLeading),
-  GetById: new EndpointMethod<string, ITodoItem>('GET', TodoApi.getTodoById, Orchestrators.takeEvery),
-  Add: new EndpointMethod<ITodoItem, ITodoItem>('POST', TodoApi.addTodo, Orchestrators.takeEvery),
-  Delete: new EndpointMethod<ITodoItem, ITodoItem>('DELETE', TodoApi.deleteTodo, Orchestrators.takeEvery),
-  Update: new EndpointMethod<ITodoItem, ITodoItem>('PATCH', TodoApi.updateTodo, Orchestrators.takeEvery),
+  GetAll: new EndpointMethod<void, ITodoItem[], OptionalMethodProps<ICacheProps>>({
+    method: 'GET',
+    apiFunction: TodoApi.cacheOverridableRequest,
+    asyncOrchestrator: Orchestrators.takeLeading
+  }),
+
+  GetById: new EndpointMethod<string, ITodoItem>({
+    method: 'GET',
+    apiFunction: TodoApi.request,
+    asyncOrchestrator: Orchestrators.takeEvery,
+    urlPreparer: (config) => config.params
+  }),
+
+  Add: new EndpointMethod<ITodoItem, ITodoItem>({
+    method: 'POST',
+    apiFunction: TodoApi.request,
+    asyncOrchestrator: Orchestrators.takeEvery
+  }),
+
+  Delete: new EndpointMethod<ITodoItem, ITodoItem>({
+    method: 'DELETE',
+    apiFunction: TodoApi.request,
+    asyncOrchestrator: Orchestrators.takeEvery,
+    bodyPreparer: () => undefined,
+    urlPreparer: (config) => config.params.url
+  }),
+
+  Update: new EndpointMethod<ITodoItem, ITodoItem>({
+    method: 'PATCH',
+    apiFunction: TodoApi.request,
+    asyncOrchestrator: Orchestrators.takeEvery,
+    urlPreparer: (config) => config.params.url
+  }),
 }
