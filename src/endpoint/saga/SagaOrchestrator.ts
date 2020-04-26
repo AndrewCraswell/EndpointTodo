@@ -1,18 +1,32 @@
 // eslint-disable-next-line import/no-unresolved
 import { call, put, takeLeading, takeEvery, takeLatest } from 'redux-saga/effects';
-import { AnyAction } from 'redux';
 
-import { AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationResultMeta } from '..';
+import { AsyncOrchestrator, AsyncOrchestratorConfig, IAsyncOrchestrationResultMeta, AsyncSuccessActionCreator, AsyncExecutingActionCreator, AsyncFailureActionCreator } from '..';
 import { sagaRegistry, EffectCreator, PromiseType,  } from './';
 
-// TODO: Implement saga chaining, or action chaining
+export interface SagaOrchestratorConfig {
+  effect: EffectCreator;
+  onBeforeExecute?: <RequestPayload, MethodProps>(
+    action: ReturnType<AsyncExecutingActionCreator<RequestPayload, MethodProps>>
+  ) => Generator;
+  onSuccess?: <RequestPayload, ResponsePayload, MethodProps>(
+    action: ReturnType<AsyncSuccessActionCreator<RequestPayload, ResponsePayload, MethodProps>>
+  ) => Generator;
+  onFailure?: <RequestPayload, MethodProps>(
+    action: ReturnType<AsyncFailureActionCreator<RequestPayload, MethodProps>>,
+    error: Error
+  ) => Generator;
+}
 
-class SagaOrchestrator implements AsyncOrchestrator {
+/**
+ * A class that implements a default asynchronous saga against an endpoint.
+ */
+export class SagaOrchestrator implements AsyncOrchestrator {
   /** The effect creator to apply when watching for the endpoint actions to occur */
-  protected effect: EffectCreator;
+  protected config: SagaOrchestratorConfig;
 
-  constructor(effect: EffectCreator) {
-    this.effect = effect;
+  constructor(config: SagaOrchestratorConfig = { effect: takeEvery }) {
+    this.config = config;
   };
 
   public orchestrate<RequestPayload = void, ResponsePayload = void, MethodProps = void>(
@@ -22,96 +36,59 @@ class SagaOrchestrator implements AsyncOrchestrator {
       const that = this;
 
       // Determine how to watch the execution scenario
-      function *rootSaga(): Generator {
-        yield that.effect(actions.Execute, asyncSaga);
+      function *watcherSaga(): Generator {
+        yield that.config.effect(actions.Execute, workerSaga);
       }
 
       // Default implementation of the saga to handle the Execution action workflow
-      // TODO: Fix the typings on AnyAction
-      function *asyncSaga(action: AnyAction): Generator {
-        const params: RequestPayload = action.payload;
-        const props: MethodProps = action.meta.props;
-        const resultMeta = {
+      function *workerSaga(action: ReturnType<typeof actions.Execute>): Generator {
+        const { onBeforeExecute, onFailure, onSuccess } = that.config;
+        const params = action.payload;
+        const props = action.meta.props;
+        const asyncMeta: IAsyncOrchestrationResultMeta<RequestPayload, MethodProps> = {
           params,
           props
-        } as IAsyncOrchestrationResultMeta<RequestPayload, MethodProps>;
+        };
 
         try {
-          yield put(actions.Executing(params, action.meta));
+          const executingAction = actions.Executing(params, action.meta);
+          yield put(executingAction);
+
+          if (onBeforeExecute) {
+            yield onBeforeExecute(executingAction);
+          }
+
+          // Make the call to the API method
           const yielded = yield call(apiFunction, params, props);
 
           // We destructure away some items we don't want stored in Redux to reduce verbosity
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { config = {}, data, request, ...slimResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
-          resultMeta.response = slimResponse;
+          const { config, data, request, ...slimResponse } = yielded as PromiseType<ReturnType<typeof apiFunction>>;
+          asyncMeta.response = slimResponse;
 
-          const successAction = actions.Success(data, resultMeta);
+          const successAction = actions.Success(data, asyncMeta);
           yield put(successAction);
-          //yield* this.onSuccessExecuted(successAction, actionResult);
-        } catch (err) {
-          if (err.request) {
-            // The request was made and the server responded with a
-            // status code that falls out of the range of 2xx
-            const errorAction = actions.Failure(err, resultMeta);
-            yield put(errorAction);
-            //yield* this.onErrorExecuted(errorAction, err.stack!, err.response);
-          } else if (err instanceof Error) {
-            // Something happened in setting up the request and triggered an Error
-            const errorAction = actions.Failure(err, resultMeta);
-            yield put(errorAction);
-            //yield* this.onErrorExecuted(errorAction, err.message, actionResult);
+
+          if (onSuccess) {
+            yield onSuccess(successAction);
           }
+        } catch (err) {
+            const errorAction = actions.Failure(err, asyncMeta);
+            yield put(errorAction);
+
+            if (onFailure) {
+              yield onFailure(errorAction, err);
+            }
         }
       }
 
       // Register the saga with the middleware so it executes
-      sagaRegistry.registerAnthology(name, [rootSaga]);
+      sagaRegistry.registerAnthology(name, [watcherSaga]);
   }
 }
 
 export const Orchestrators = {
-  takeLeading: new SagaOrchestrator(takeLeading),
-  takeEvery: new SagaOrchestrator(takeEvery),
-  takeLatest: new SagaOrchestrator(takeLatest)
+  takeEvery: new SagaOrchestrator(),
+  takeLeading: new SagaOrchestrator({ effect: takeLeading }),
+  takeLatest: new SagaOrchestrator({ effect: takeLatest })
 }
-
-// /**
-//  * A class that implements a default saga against an endpoint.
-//  * Pieces of the default behavior can be overriden by creating a new class and extending from this class.
-//  */
-// export class EndpointSaga<RequestBody = any, ResponseBody = any, PassThroughProps extends IEndpointPassThroughProps = any> {
-
-//   /**
-//    * A hook meant to be overridden by a subclass to extend the default behavior of the EndpointSaga.
-//    * This function is executed by the Saga after a ExecuteSuccess action has been dispatched.
-//    *
-//    * @param action The action that was successful
-//    * @param response The response from the Api method
-//    */
-//   /* eslint-disable @typescript-eslint/no-unused-vars */
-//   protected *onSuccessExecuted(
-//     action: IEndpointAction<RequestBody, PassThroughProps>,
-//     result: IEndpointActionMeta<RequestBody, PassThroughProps>
-//   ): IterableIterator<any> {
-//     // Left intentionally blank.
-//     //  This hook should be overridden by a subclass to get custom behavior integrated with the default Saga
-//   }
-//   /* eslint-enable @typescript-eslint/no-unused-vars */
-
-//   /**
-//    * A hook meant to be overridden by a subclass to extend the default behavior of the EndpointSaga.
-//    * This function is executed by the Saga after a ExecuteError action has been dispatched.
-//    *
-//    * @param action The action that was unsuccessful
-//    */
-//   /* eslint-disable @typescript-eslint/no-unused-vars */
-//   protected *onErrorExecuted(
-//     action: IEndpointAction<RequestBody, PassThroughProps>,
-//     errorMessage: string,
-//     result: IEndpointActionMeta<RequestBody, PassThroughProps>
-//   ): IterableIterator<any> {
-//     // Left intentionally blank.
-//     //  This hook should be overridden by a subclass to get custom behavior integrated with the default Saga
-//   }
-//   /* eslint-enable @typescript-eslint/no-unused-vars */
-// }

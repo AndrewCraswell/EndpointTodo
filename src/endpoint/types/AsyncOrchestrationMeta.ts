@@ -13,5 +13,5 @@ export interface IAsyncOrchestrationRequestMeta<MethodProps = void> {
 export interface IAsyncOrchestrationResultMeta<RequestPayload = void, MethodProps = void> {
   params: RequestPayload;
   props: MethodProps;
-  response: SlimRequestResponse;
+  response?: SlimRequestResponse;
 }
