@@ -19,6 +19,28 @@ export type EndpointMethodMap = {
   [name: string]: IEndpointMethod
 }
 
+type UrlPreparerConfig<RequestPayload, MethodProps> = {
+  baseUrl: string;
+  params: RequestPayload;
+  props: MethodProps;
+}
+
+type BodyPreparerConfig<RequestPayload, MethodProps> = {
+  params: RequestPayload;
+  props: MethodProps;
+}
+
+type UrlPreparerFunction<RequestPayload, MethodProps> = (config: UrlPreparerConfig<RequestPayload, MethodProps>) => string;
+type BodyPreparerFunction<RequestPayload, MethodProps> = (config: BodyPreparerConfig<RequestPayload, MethodProps>) => any;
+
+type EndpointMethodConfig<RequestPayload, ResponsePayload, MethodProps> = {
+  method: keyof typeof RequestMethod,
+  apiFunction: EndpointApiFunction<RequestPayload, ResponsePayload, MethodProps>,
+  urlPreparer?: UrlPreparerFunction<RequestPayload, MethodProps>,
+  bodyPreparer?: BodyPreparerFunction<RequestPayload, MethodProps>,
+  asyncOrchestrator?: AsyncOrchestrator
+}
+
 export interface IEndpointMethod {
   Types: {
     Execute: string,
@@ -41,6 +63,8 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
   private readonly apiFunction: EndpointApiFunction<RequestPayload, ResponsePayload, MethodProps>;
   private readonly method: RequestMethod;
   private readonly asyncOrchestrator: AsyncOrchestrator | undefined;
+  private readonly bodyPreparer: BodyPreparerFunction<RequestPayload, MethodProps> = ({ params }) => params;
+  private readonly urlPreparer: UrlPreparerFunction<RequestPayload, MethodProps> = ({ baseUrl }) => baseUrl;
 
   // List of Action Types
   public Types: {
@@ -58,14 +82,19 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
   public Failure: AsyncFailureActionCreator<RequestPayload, MethodProps>;
   public ClearRequests: AsyncClearRequestsActionCreator;
 
-  constructor(
-    method: keyof typeof RequestMethod,
-    apiFunction: EndpointApiFunction<RequestPayload, ResponsePayload, MethodProps>,
-    asyncOrchestrator?: AsyncOrchestrator) {
-
+  constructor(config: EndpointMethodConfig<RequestPayload, ResponsePayload, MethodProps>) {
+    const { apiFunction, method, asyncOrchestrator, bodyPreparer, urlPreparer } = config;
     this.method = method as RequestMethod;
     this.apiFunction = apiFunction;
     this.asyncOrchestrator = asyncOrchestrator;
+
+    if (bodyPreparer) {
+      this.bodyPreparer = bodyPreparer;
+    }
+
+    if (urlPreparer) {
+      this.urlPreparer = urlPreparer;
+    }
 
     const actions = this.CreateActions();
     this.Types = this.GetActionTypes();
@@ -93,9 +122,9 @@ export class EndpointMethod<RequestPayload = void, ResponsePayload = void, Metho
         actions: this._actions,
         apiFunction: (payload: RequestPayload, props: MethodProps): ReturnType<typeof apiFunction> => {
           return apiFunction({
-            url: baseUrl,
+            url: this.urlPreparer({ baseUrl, params: payload, props }),
             method: this.method,
-            payload,
+            payload: this.bodyPreparer({ params: payload, props }),
             props
           });
         }

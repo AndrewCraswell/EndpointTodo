@@ -1,11 +1,9 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { setupCache } from 'axios-cache-adapter'
 
 import { IRequestResponse, EndpointApiFunctionConfig, OptionalMethodProps } from "../../../endpoint";
 import { ITodoItem, ICacheProps } from "../../../models";
 import { TodoSlice } from './';
-
-// TODO: Introduce a EndpointUrlMapper function to take the parameters and construct a Url
 
 export class TodoApi {
   public static cache = setupCache({
@@ -24,72 +22,38 @@ export class TodoApi {
     }
   })
 
-  private static http = axios.create({
+  protected static http = axios.create({
     adapter: TodoApi.cache.adapter
   });
 
-  public static getAllTodos = (
+  public static cacheOverridableRequest = (
     config: EndpointApiFunctionConfig<void, OptionalMethodProps<ICacheProps>>,
   ): Promise<IRequestResponse<ITodoItem[]>> => {
-    const { url, method, props } = config;
+    const { props } = config;
 
-    let disableCache = false;
+    let ignoreCache = false;
     if (props) {
-      disableCache = props.disableCache ?? false;
+      ignoreCache = props.disableCache ?? false;
     }
 
-    return TodoApi.http.request({
-      url,
-      method,
+    return TodoApi.request(config, {
       cache: {
-        ignoreCache: disableCache
+        ignoreCache
       }
     });
   };
 
-  public static getTodoById = (
-    config: EndpointApiFunctionConfig<string>
-  ): Promise<IRequestResponse<ITodoItem>> => {
-    const { method, payload } = config;
-
-    return TodoApi.http.request({
-      url: `${payload}`,
-      method
-    });
-  };
-
-  public static addTodo = (
-    config: EndpointApiFunctionConfig<ITodoItem>
-  ): Promise<IRequestResponse<ITodoItem>> => {
+  public static request = (
+    config: EndpointApiFunctionConfig<any>,
+    requestConfig?: Partial<AxiosRequestConfig>
+  ): Promise<IRequestResponse<any>> => {
     const { url, method, payload } = config;
 
     return TodoApi.http.request({
+      ...requestConfig,
       url,
       method,
       data: payload,
-    });
-  };
-
-  public static deleteTodo = (
-    config: EndpointApiFunctionConfig<ITodoItem>
-  ): Promise<IRequestResponse<ITodoItem>> => {
-    const { method, payload } = config;
-
-    return TodoApi.http.request({
-      url: `${payload?.url}`,
-      method
-    });
-  };
-
-  public static updateTodo = (
-    config: EndpointApiFunctionConfig<ITodoItem>
-  ): Promise<IRequestResponse<ITodoItem>> => {
-    const { method, payload } = config;
-
-    return TodoApi.http.request({
-      url: `${payload?.url}`,
-      method,
-      data: payload
     });
   };
 }
