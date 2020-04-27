@@ -6,7 +6,7 @@ export interface IRequestRecord {
   status: RequestStatus
   params: any;
   method: RequestMethod;
-  executedAt: Date;
-  completedAt?: Date;
+  executedAt: number;
+  completedAt?: number;
   response?: SlimRequestResponse;
 }
