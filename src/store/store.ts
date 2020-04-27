@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
 import createSagaMiddleware from 'redux-saga'
 import { Saga } from 'redux-saga';
 
@@ -15,7 +15,7 @@ const sagaMiddleware = createSagaMiddleware();
 
 export const store = configureStore({
   reducer: () => {},
-  middleware: [sagaMiddleware],
+  middleware: [...getDefaultMiddleware({ thunk: false }), sagaMiddleware],
   enhancers: [endpointRegistrarEnhancer()]
 })
 

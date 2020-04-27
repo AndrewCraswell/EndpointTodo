@@ -21,7 +21,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly initialState: State & IEndpointState;
   public readonly actions: EndpointMethods;
   public readonly requests = createEntityAdapter<IRequestRecord>({
-    sortComparer: (a, b) => a.executedAt && b.executedAt ? a.executedAt.getTime() - b.executedAt.getTime() : a.executedAt.getTime(),
+    sortComparer: (a, b) => a.executedAt && b.executedAt ? a.executedAt - b.executedAt : a.executedAt,
   });
   public readonly requestSelectors = this.requests.getSelectors();
 
@@ -61,7 +61,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
 
         if (id && !isDisabled) {
           if(that._patches.has(id)) {
-            that._patches.get(id)?.concat(inverse);
+            that._patches.get(id)!.concat(inverse);
           } else {
             that._patches.set(id, inverse);
           }
@@ -96,7 +96,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
               const id = action.meta.props.id;
 
               this.requests.addOne(state.requests, {
-                executedAt: new Date(),
+                executedAt: Date.now(),
                 id,
                 type,
                 status: RequestStatus.PENDING,
@@ -122,7 +122,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
               const id = meta.props.id;
 
               const changes = {
-                completedAt: new Date(),
+                completedAt: Date.now(),
                 status: RequestStatus.SUCCESS,
                 response: meta.response
               }
@@ -146,7 +146,7 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
               this.requests.updateOne(state.requests, {
                 id,
                 changes: {
-                  completedAt: new Date(),
+                  completedAt: Date.now(),
                   status: RequestStatus.FAILURE,
                   response: meta.response
                 }
