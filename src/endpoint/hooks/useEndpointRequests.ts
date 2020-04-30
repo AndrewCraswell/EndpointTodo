@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Dictionary } from '@reduxjs/toolkit';
+import { Dictionary } from 'rtoolkit-immer-fix';
 
 import { EndpointSlice, isRequestFetching, IRequestRecord, IEndpointState } from '..';
 import { EndpointMethodMap } from '../EndpointMethod';

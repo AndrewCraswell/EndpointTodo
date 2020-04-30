@@ -1,4 +1,4 @@
-import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update, createNextState } from "@reduxjs/toolkit";
+import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update, createNextState } from "rtoolkit-immer-fix";
 import { enablePatches, Patch, applyPatches } from "immer";
 
 import {

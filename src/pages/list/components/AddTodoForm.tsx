@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { TextField, Paper, Button, Grid } from "@material-ui/core";
 import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
-import { nanoid } from '@reduxjs/toolkit';
+import { nanoid } from 'rtoolkit-immer-fix';
 
 import { ITodoItem } from '../../../models';
 import { ApplicationState } from '../../../store';
