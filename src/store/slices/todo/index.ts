@@ -1,4 +1,4 @@
-import { createReducer, createEntityAdapter } from "@reduxjs/toolkit";
+import { createReducer, createEntityAdapter } from "rtoolkit-immer-fix";
 
 import { EndpointSlice } from "../../../endpoint";
 import { TodoMethods } from "./actions";

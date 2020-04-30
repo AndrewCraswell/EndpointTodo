@@ -1,4 +1,4 @@
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
+import { configureStore, getDefaultMiddleware } from 'rtoolkit-immer-fix'
 import createSagaMiddleware from 'redux-saga'
 import { Saga } from 'redux-saga';
 

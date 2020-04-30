@@ -1,4 +1,4 @@
-import { EntityState } from '@reduxjs/toolkit';
+import { EntityState } from 'rtoolkit-immer-fix';
 
 import { IRequestRecord } from './';
 
