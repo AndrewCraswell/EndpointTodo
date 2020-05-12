@@ -1,4 +1,4 @@
-import { ActionCreatorWithPreparedPayload } from "rtoolkit-immer-fix";
+import { ActionCreatorWithPreparedPayload } from "@reduxjs/toolkit";
 
 import { IAsyncOrchestrationResultMeta, IAsyncOrchestrationRequestMeta, IEndpointMethodProps } from "..";
 
