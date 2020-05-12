@@ -1,4 +1,4 @@
-import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update, createNextState } from "rtoolkit-immer-fix";
+import { Reducer, AnyAction, createEntityAdapter, PayloadAction, Update, createNextState } from "@reduxjs/toolkit";
 import { enablePatches, Patch, applyPatches } from "immer";
 
 import {
@@ -11,9 +11,6 @@ import {
   IAsyncOrchestrationResultMeta,
   RequestStatus
 } from "./";
-
-// Enable the Immer patches feature
-enablePatches();
 
 export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   public readonly name: string;
@@ -36,6 +33,9 @@ export class EndpointSlice<State, EndpointMethods extends EndpointMethodMap> {
   }
 
   constructor(name: string, baseUrl: string, initialState: State, methods: EndpointMethods) {
+    // Enable the Immer patches feature
+    enablePatches();
+
     this.name = name;
     this.baseUrl = baseUrl;
     this.actions = methods;

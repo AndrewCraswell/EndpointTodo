@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { nanoid } from 'rtoolkit-immer-fix';
+import { nanoid } from '@reduxjs/toolkit';
 
 import { EndpointMethod } from '..';
 

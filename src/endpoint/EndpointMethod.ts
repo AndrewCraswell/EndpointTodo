@@ -1,4 +1,4 @@
-import { createAction, nanoid } from "rtoolkit-immer-fix";
+import { createAction, nanoid } from "@reduxjs/toolkit";
 
 import {
   RequestMethod,
